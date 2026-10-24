@@ -3,520 +3,164 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Carnatic Music - Classical Notations</title>
-    <!-- Tailwind CSS CDN -->
-    <script src="https://cdn.tailwindcss.com"></script>
-    <script>
-        tailwind.config = {
-            theme: {
-                extend: {
-                    colors: {
-                        carnatic: {
-                            maroon: '#600010',
-                            deepMaroon: '#40000a',
-                            gold: '#D4AF37',
-                            goldDark: '#AA820A',
-                            cream: '#FAF6EF',
-                            creamCard: '#FFFFFF',
-                            text: '#2B1810',
-                            accent: '#8B0000'
-                        }
-                    },
-                    fontFamily: {
-                        sans: ['Inter', 'serif']
-                    }
-                }
-            }
-        }
-    </script>
-    <!-- FontAwesome Icons -->
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <title>Carnatic Music Notation Generator</title>
+    <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
     <style>
-        body {
-            background-color: #FAF6EF;
-            color: #2B1810;
-        }
-        .gold-gradient {
-            background: linear-gradient(135deg, #D4AF37 0%, #AA820A 100%);
-        }
-        .maroon-gradient {
-            background: linear-gradient(135deg, #600010 0%, #300008 100%);
-        }
-        .notation-font {
-            font-family: 'Courier New', Courier, monospace;
+        .blurred-content {
+            filter: blur(8px);
+            user-select: none;
+            pointer-events: none;
         }
     </style>
 </head>
-<body class="min-h-screen flex flex-col font-sans">
-
-    <!-- Header & Navigation -->
-    <header class="maroon-gradient text-white shadow-lg sticky top-0 z-50 border-b-2 border-carnatic-gold">
-        <div class="max-w-6xl mx-auto px-4 py-4 flex flex-wrap justify-between items-center">
-            <a href="#" class="flex items-center space-x-3">
-                <div class="w-10 h-10 rounded-full border-2 border-carnatic-gold flex items-center justify-center bg-carnatic-deepMaroon">
-                    <i class="fa-solid font-bold text-carnatic-gold text-lg">🪕</i>
+<body class="bg-slate-50 min-h-screen py-10 px-4">
+    <div class="max-w-3xl mx-auto bg-white shadow-xl rounded-2xl p-8 border border-slate-100">
+        <div class="text-center mb-8">
+            <h1 class="text-3xl font-bold text-slate-900 mb-2">Carnatic Music Notation Generator</h1>
+            <p class="text-slate-600">Provide a YouTube link, song name, or upload an audio file to get swara notation.</p>
+            <span class="inline-block mt-3 bg-indigo-50 text-indigo-700 font-semibold px-4 py-1.5 rounded-full text-sm">
+                Fee: LKR 100 per notation
+            </span>
+        </div>
+        <div class="space-y-4 mb-8">
+            <div>
+                <label class="block text-sm font-semibold text-slate-700 mb-1">Google Gemini API Key</label>
+                <input type="password" id="apiKey" placeholder="Enter your free Gemini API key" 
+                    class="w-full px-4 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:outline-none">
+            </div>
+            <div>
+                <label class="block text-sm font-semibold text-slate-700 mb-1">YouTube Link or Song Name (Optional)</label>
+                <input type="text" id="songInput" placeholder="e.g. https://youtube.com/... or Vatapi Ganapatim" 
+                    class="w-full px-4 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:outline-none">
+            </div>
+            <div>
+                <label class="block text-sm font-semibold text-slate-700 mb-1">Or Upload Audio File (MP3 / WAV)</label>
+                <input type="file" id="audioInput" accept="audio/*" 
+                    class="w-full text-sm text-slate-500 file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:text-sm file:font-semibold file:bg-indigo-50 file:text-indigo-700 hover:file:bg-indigo-100">
+            </div>
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div>
+                    <label class="block text-sm font-semibold text-slate-700 mb-1">Raga (Optional)</label>
+                    <input type="text" id="ragaInput" placeholder="e.g. Hamsadhwani" 
+                        class="w-full px-4 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:outline-none">
                 </div>
                 <div>
-                    <h1 class="text-xl md:text-2xl font-bold tracking-wide text-carnatic-gold">Carnatic Music</h1>
-                    <p class="text-xs text-amber-200 tracking-wider uppercase">Authentic Swara Notations</p>
+                    <label class="block text-sm font-semibold text-slate-700 mb-1">Instrument</label>
+                    <select id="instrumentInput" class="w-full px-4 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:outline-none">
+                        <option value="General / Vocal">General / Vocal</option>
+                        <option value="Flute">Flute</option>
+                        <option value="Violin">Violin</option>
+                        <option value="Veena">Veena</option>
+                    </select>
                 </div>
-            </a>
-
-            <!-- Mobile Menu Toggle -->
-            <button id="menuBtn" class="md:hidden text-carnatic-gold focus:outline-none p-2" aria-label="Toggle Menu">
-                <i class="fa-solid fa-bars text-xl"></i>
+            </div>
+            <button onclick="generateNotation()" id="generateBtn" 
+                class="w-full bg-indigo-600 hover:bg-indigo-700 text-white font-semibold py-3 rounded-lg transition duration-200 cursor-pointer shadow-md">
+                Generate Notation
             </button>
-
-            <!-- Navigation Links -->
-            <nav id="navMenu" class="hidden md:flex flex-col md:flex-row w-full md:w-auto mt-4 md:mt-0 space-y-2 md:space-y-0 md:space-x-6 text-sm font-medium">
-                <a href="#home" class="hover:text-carnatic-gold transition-colors py-1">Home</a>
-                <a href="#samples" class="hover:text-carnatic-gold transition-colors py-1">Sample Notations</a>
-                <a href="#order" class="hover:text-carnatic-gold transition-colors py-1">Order Notation</a>
-                <a href="#pricing" class="hover:text-carnatic-gold transition-colors py-1">Pricing & FAQ</a>
-                <a href="#contact" class="hover:text-carnatic-gold transition-colors py-1">Contact</a>
-            </nav>
         </div>
-    </header>
-
-    <!-- Hero Section -->
-    <section id="home" class="maroon-gradient text-white py-16 px-4 border-b border-carnatic-gold/30 relative overflow-hidden">
-        <div class="max-w-4xl mx-auto text-center relative z-10">
-            <span class="inline-block px-3 py-1 bg-carnatic-gold/20 text-carnatic-gold text-xs font-semibold tracking-wider rounded-full border border-carnatic-gold/40 mb-4">
-                Sri Lankan Rupees (LKR) Payments
-            </span>
-            <h2 class="text-3xl md:text-5xl font-bold mb-4 leading-tight text-amber-100">
-                Custom Carnatic Swara Notations for Any Krithi or Song
-            </h2>
-            <p class="text-lg md:text-xl text-amber-200/90 mb-8 max-w-2xl mx-auto font-light">
-                Provide a song link or audio track, and receive accurate, beautifully formatted Carnatic notation transcriptions with Gamaka markings.
-            </p>
-            <div class="flex flex-col sm:flex-row justify-center gap-4">
-                <a href="#order" class="gold-gradient text-carnatic-deepMaroon px-8 py-3.5 rounded-lg font-bold shadow-lg hover:opacity-90 transition transform hover:-translate-y-0.5 text-center">
-                    Order Notation Now
-                </a>
-                <a href="#samples" class="bg-carnatic-deepMaroon/60 border border-carnatic-gold/50 text-carnatic-gold px-8 py-3.5 rounded-lg font-bold hover:bg-carnatic-deepMaroon transition text-center">
-                    View Sample Notation
-                </a>
-            </div>
+        <div id="loader" class="hidden text-center py-6">
+            <div class="inline-block animate-spin rounded-full h-8 w-8 border-4 border-indigo-600 border-t-transparent"></div>
+            <p class="text-sm text-slate-600 mt-2">AI is processing and generating swara notation...</p>
         </div>
-    </section>
-
-    <!-- Main Content Container -->
-    <main class="max-w-6xl mx-auto px-4 py-12 space-y-16 flex-grow">
-
-        <!-- Sample Notation Showcase -->
-        <section id="samples" class="scroll-mt-24">
-            <div class="text-center mb-8">
-                <h2 class="text-2xl md:text-3xl font-bold text-carnatic-maroon">Sample Carnatic Notation Format</h2>
-                <p class="text-gray-600 mt-2">Every notation is structured with clear Raga details, Taala, and precise Swara mapping.</p>
-            </div>
-
-            <div class="bg-white rounded-xl shadow-md border border-amber-200/60 overflow-hidden max-w-3xl mx-auto">
-                <div class="bg-carnatic-maroon text-white p-4 border-b border-carnatic-gold flex justify-between items-center">
-                    <div>
-                        <h3 class="font-bold text-lg text-carnatic-gold">Sample Krithi: Maha Ganapathim</h3>
-                        <p class="text-xs text-amber-200">Raga: Nata | Taala: Adi | Composer: Muthuswami Dikshitar</p>
-                    </div>
-                    <span class="text-xs bg-carnatic-gold/20 text-carnatic-gold border border-carnatic-gold px-2 py-1 rounded">Detailed Notation</span>
-                </div>
-                <div class="p-6 bg-amber-50/50 notation-font text-sm leading-relaxed overflow-x-auto space-y-4">
-                    <div class="border-b border-amber-200 pb-3">
-                        <p class="font-bold text-carnatic-maroon mb-1">Pallavi (Speed 1):</p>
-                        <p class="tracking-widest font-semibold text-gray-800">S , R2 G3 , | M1 P , | D2 N3 S' , ||</p>
-                        <p class="text-gray-500 text-xs tracking-wider">Ma - ha - Ga - | na - pa - | thi - m - - ||</p>
-                    </div>
-                    <div class="border-b border-amber-200 pb-3">
-                        <p class="font-bold text-carnatic-maroon mb-1">Anupallavi (With Gamaka Indicators):</p>
-                        <p class="tracking-widest font-semibold text-gray-800">P , (M1~P) G3 , | S , R2 , | G3 M1 P , ||</p>
-                        <p class="text-gray-500 text-xs tracking-wider">Man - sa - - - | smara - - | ra - - - ||</p>
-                    </div>
-                    <p class="text-xs italic text-gray-500">Note: Output formats are provided in easy-to-print PDF format.</p>
-                </div>
-            </div>
-        </section>
-
-        <!-- Order Form & Live Summary Section -->
-        <section id="order" class="scroll-mt-24">
-            <div class="text-center mb-10">
-                <h2 class="text-2xl md:text-3xl font-bold text-carnatic-maroon">Request Custom Notation</h2>
-                <p class="text-gray-600 mt-2">Fill in the song details below and choose your preferred notation tier.</p>
-            </div>
-
-            <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
-                
-                <!-- Order Form -->
-                <div class="lg:col-span-2 bg-white p-6 md:p-8 rounded-xl shadow-md border border-amber-200/80">
-                    <form id="notationOrderForm" class="space-y-6">
-                        
-                        <!-- Song Details -->
-                        <div>
-                            <h3 class="text-lg font-bold text-carnatic-maroon border-b border-amber-200 pb-2 mb-4 flex items-center">
-                                <i class="fa-solid fa-music text-carnatic-gold mr-2"></i> 1. Song Information
-                            </h3>
-                            
-                            <div class="space-y-4">
-                                <div>
-                                    <label for="songTitle" class="block text-sm font-semibold text-carnatic-text mb-1">Song / Composition Name *</label>
-                                    <input type="text" id="songTitle" required placeholder="e.g., Samajavaragamana or Movie/Album Song Title" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-carnatic-maroon focus:border-transparent outline-none text-sm">
-                                </div>
-
-                                <div class="grid grid-cols-1 md:grid-cols-3 gap-3">
-                                    <div>
-                                        <label for="composer" class="block text-xs font-medium text-gray-600 mb-1">Composer (Optional)</label>
-                                        <input type="text" id="composer" placeholder="e.g., Tyagaraja" class="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm">
-                                    </div>
-                                    <div>
-                                        <label for="raaga" class="block text-xs font-medium text-gray-600 mb-1">Raga (Optional)</label>
-                                        <input type="text" id="raaga" placeholder="e.g., Hindolam" class="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm">
-                                    </div>
-                                    <div>
-                                        <label for="taala" class="block text-xs font-medium text-gray-600 mb-1">Taala (Optional)</label>
-                                        <input type="text" id="taala" placeholder="e.g., Adi / Rupakam" class="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm">
-                                    </div>
-                                </div>
-
-                                <div>
-                                    <label for="songLink" class="block text-sm font-semibold text-carnatic-text mb-1">Song Link (YouTube / Google Drive / Audio URL)</label>
-                                    <input type="url" id="songLink" placeholder="https://www.youtube.com/watch?v=..." class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-carnatic-maroon focus:border-transparent outline-none text-sm">
-                                </div>
-
-                                <div>
-                                    <label class="block text-xs font-medium text-gray-600 mb-1">Or File Note / Custom Reference</label>
-                                    <div class="border-2 border-dashed border-amber-300 bg-amber-50/50 p-4 rounded-lg text-center cursor-pointer hover:bg-amber-50 transition" id="fileNoteBox">
-                                        <i class="fa-solid fa-cloud-arrow-up text-carnatic-gold text-2xl mb-1"></i>
-                                        <p class="text-xs text-gray-600">If you have a recorded file, paste the link above or mention details in special instructions below.</p>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-
-                        <!-- Tier Selection -->
-                        <div>
-                            <h3 class="text-lg font-bold text-carnatic-maroon border-b border-amber-200 pb-2 mb-4 flex items-center">
-                                <i class="fa-solid fa-layer-group text-carnatic-gold mr-2"></i> 2. Select Notation Package
-                            </h3>
-
-                            <div class="space-y-3">
-                                <label class="flex items-start p-3 border rounded-lg cursor-pointer transition hover:bg-amber-50 border-gray-200" id="tierLabelBasic">
-                                    <input type="radio" name="tier" value="1500" data-name="Basic Notation" checked class="mt-1 text-carnatic-maroon focus:ring-carnatic-maroon">
-                                    <div class="ml-3 flex-grow">
-                                        <div class="flex justify-between">
-                                            <span class="font-bold text-sm text-carnatic-text">Basic Notation</span>
-                                            <span class="font-bold text-carnatic-maroon text-sm">LKR 1,500</span>
-                                        </div>
-                                        <p class="text-xs text-gray-500 mt-0.5">Standard Swara notation for basic practice and learning.</p>
-                                    </div>
-                                </label>
-
-                                <label class="flex items-start p-3 border rounded-lg cursor-pointer transition hover:bg-amber-50 border-gray-200" id="tierLabelDetailed">
-                                    <input type="radio" name="tier" value="3000" data-name="Detailed Notation with Gamakas" class="mt-1 text-carnatic-maroon focus:ring-carnatic-maroon">
-                                    <div class="ml-3 flex-grow">
-                                        <div class="flex justify-between">
-                                            <span class="font-bold text-sm text-carnatic-text">Detailed Notation (Gamakas Included)</span>
-                                            <span class="font-bold text-carnatic-maroon text-sm">LKR 3,000</span>
-                                        </div>
-                                        <p class="text-xs text-gray-500 mt-0.5">Includes exact ornamentations (Gamakas), speed variations, and phrase breakdowns.</p>
-                                    </div>
-                                </label>
-
-                                <label class="flex items-start p-3 border rounded-lg cursor-pointer transition hover:bg-amber-50 border-gray-200" id="tierLabelCustom">
-                                    <input type="radio" name="tier" value="5000" data-name="Custom Arrangement & Audio Guide" class="mt-1 text-carnatic-maroon focus:ring-carnatic-maroon">
-                                    <div class="ml-3 flex-grow">
-                                        <div class="flex justify-between">
-                                            <span class="font-bold text-sm text-carnatic-text">Custom Arrangement & Guide</span>
-                                            <span class="font-bold text-carnatic-maroon text-sm">LKR 5,000</span>
-                                        </div>
-                                        <p class="text-xs text-gray-500 mt-0.5">Complete score + slow reference audio snippet for difficult passages.</p>
-                                    </div>
-                                </label>
-                            </div>
-                        </div>
-
-                        <!-- Customer Info -->
-                        <div>
-                            <h3 class="text-lg font-bold text-carnatic-maroon border-b border-amber-200 pb-2 mb-4 flex items-center">
-                                <i class="fa-solid fa-user text-carnatic-gold mr-2"></i> 3. Customer Details
-                            </h3>
-
-                            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                                <div>
-                                    <label for="custName" class="block text-sm font-semibold text-carnatic-text mb-1">Full Name *</label>
-                                    <input type="text" id="custName" required placeholder="e.g., Ananya Sharma" class="w-full px-4 py-2 border border-gray-300 rounded-lg text-sm">
-                                </div>
-                                <div>
-                                    <label for="custEmail" class="block text-sm font-semibold text-carnatic-text mb-1">Email Address *</label>
-                                    <input type="email" id="custEmail" required placeholder="name@example.com" class="w-full px-4 py-2 border border-gray-300 rounded-lg text-sm">
-                                </div>
-                            </div>
-
-                            <div class="mt-4">
-                                <label for="custPhone" class="block text-sm font-semibold text-carnatic-text mb-1">WhatsApp / Phone Number *</label>
-                                <input type="tel" id="custPhone" required placeholder="+94 7X XXX XXXX" class="w-full px-4 py-2 border border-gray-300 rounded-lg text-sm">
-                            </div>
-
-                            <div class="mt-4">
-                                <label for="specialNotes" class="block text-sm font-semibold text-carnatic-text mb-1">Special Instructions / Timestamps</label>
-                                <textarea id="specialNotes" rows="2" placeholder="Mention specific timestamps or pitch (Shruti) preference if any..." class="w-full px-4 py-2 border border-gray-300 rounded-lg text-sm"></textarea>
-                            </div>
-                        </div>
-
-                        <button type="submit" class="w-full gold-gradient text-carnatic-deepMaroon font-bold py-3.5 rounded-lg shadow-md hover:opacity-90 transition text-center text-base">
-                            Proceed to Review Order
-                        </button>
-                    </form>
-                </div>
-
-                <!-- Live Summary & Payment -->
-                <div class="space-y-6">
-                    <div class="bg-white p-6 rounded-xl shadow-md border border-amber-200/80 sticky top-24">
-                        <h3 class="text-lg font-bold text-carnatic-maroon border-b border-amber-200 pb-2 mb-4 flex items-center">
-                            <i class="fa-solid fa-receipt text-carnatic-gold mr-2"></i> Order Summary
-                        </h3>
-
-                        <div class="space-y-3 text-sm">
-                            <div class="flex justify-between text-gray-600">
-                                <span>Selected Package:</span>
-                                <span id="summaryPackageName" class="font-semibold text-gray-800 text-right">Basic Notation</span>
-                            </div>
-                            <div class="flex justify-between text-gray-600">
-                                <span>Song:</span>
-                                <span id="summarySongTitle" class="font-semibold text-gray-800 truncate max-w-[150px] text-right">Not entered yet</span>
-                            </div>
-                            <div class="border-t border-gray-100 pt-3 flex justify-between items-center text-base">
-                                <span class="font-bold text-carnatic-text">Total Amount:</span>
-                                <span id="summaryTotal" class="font-bold text-carnatic-maroon text-xl">LKR 1,500</span>
-                            </div>
-                        </div>
-
-                        <!-- Payment Methods Section -->
-                        <div class="mt-6 pt-4 border-t border-amber-200">
-                            <h4 class="text-xs font-bold text-gray-500 uppercase tracking-wider mb-3">Accepted Payment Gateways (LKR)</h4>
-                            
-                            <div class="space-y-2">
-                                <!-- Direct Bank Transfer Modal Trigger / Details -->
-                                <div class="p-3 border border-amber-200 rounded-lg bg-amber-50/40 text-xs text-gray-700">
-                                    <p class="font-bold text-carnatic-maroon mb-1"><i class="fa-solid fa-building-columns mr-1"></i> Direct Local Bank Transfer</p>
-                                    <p>Commercial Bank, Sampath Bank, HNB (Sri Lanka)</p>
-                                    <p class="text-[11px] text-gray-500 mt-1">Account details provided after order review.</p>
-                                </div>
-
-                                <!-- Online Gateway Links -->
-                                <button type="button" onclick="handleMockPayment('Stripe / PayHere')" class="w-full bg-slate-800 hover:bg-slate-900 text-white font-medium py-2 px-3 rounded text-xs flex items-center justify-between transition">
-                                    <span><i class="fa-regular fa-credit-card mr-1"></i> Pay via Credit/Debit Card</span>
-                                    <i class="fa-solid fa-arrow-right text-carnatic-gold"></i>
-                                </button>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-
-            </div>
-        </section>
-
-        <!-- Order Ticket Confirmation Modal -->
-        <div id="ticketModal" class="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4">
-            <div class="bg-white rounded-xl shadow-2xl max-w-lg w-full p-6 space-y-4 border border-carnatic-gold">
-                <div class="text-center border-b border-amber-200 pb-4">
-                    <div class="w-12 h-12 bg-emerald-100 text-emerald-600 rounded-full flex items-center justify-center mx-auto mb-2 text-xl">
-                        <i class="fa-solid fa-check"></i>
-                    </div>
-                    <h3 class="text-xl font-bold text-carnatic-maroon">Order Ticket Generated!</h3>
-                    <p class="text-xs text-gray-500">Save your order reference ticket below.</p>
-                </div>
-
-                <div id="ticketContent" class="bg-amber-50 p-4 rounded-lg border border-amber-200 text-xs space-y-2 notation-font">
-                    <!-- Populated via Javascript -->
-                </div>
-
-                <div class="p-3 bg-amber-100/50 rounded-lg text-xs text-gray-700 space-y-1">
-                    <p class="font-bold text-carnatic-maroon">Payment Instructions (LKR):</p>
-                    <p><strong>Bank:</strong> Commercial Bank of Ceylon</p>
-                    <p><strong>Account Name:</strong> Carnatic Music Services</p>
-                    <p><strong>Account No:</strong> 8009XXXXXX</p>
-                    <p><strong>Branch:</strong> Colombo Main</p>
-                    <p class="text-[11px] text-gray-500 mt-1">Please send transfer slip/screenshot to WhatsApp with your Reference Number.</p>
-                </div>
-
-                <div class="flex gap-2">
-                    <button onclick="window.print()" class="w-1/2 border border-carnatic-maroon text-carnatic-maroon font-bold py-2 rounded text-xs hover:bg-amber-50">
-                        <i class="fa-solid fa-print mr-1"></i> Print / Save Ticket
-                    </button>
-                    <button onclick="closeTicketModal()" class="w-1/2 gold-gradient text-carnatic-deepMaroon font-bold py-2 rounded text-xs hover:opacity-90">
-                        Close
-                    </button>
-                </div>
-            </div>
-        </div>
-
-        <!-- Pricing & FAQ Section -->
-        <section id="pricing" class="scroll-mt-24">
-            <div class="text-center mb-10">
-                <h2 class="text-2xl md:text-3xl font-bold text-carnatic-maroon">Pricing & Frequently Asked Questions</h2>
-                <p class="text-gray-600 mt-2">Transparent pricing in Sri Lankan Rupees (LKR)</p>
-            </div>
-
-            <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-12">
-                <div class="bg-white p-6 rounded-xl shadow-sm border border-amber-200 text-center">
-                    <h3 class="font-bold text-lg text-carnatic-maroon">Basic Notation</h3>
-                    <p class="text-2xl font-bold my-2 text-carnatic-goldDark">LKR 1,500</p>
-                    <p class="text-xs text-gray-500 mb-4">Ideal for students learning standard Krithis or Varnams.</p>
-                    <ul class="text-xs text-gray-600 space-y-2 text-left list-disc list-inside">
-                        <li>Standard Swara mapping</li>
-                        <li>Pallavi, Anupallavi, Charanam</li>
-                        <li>PDF delivery in 2-3 days</li>
-                    </ul>
-                </div>
-
-                <div class="bg-white p-6 rounded-xl shadow-md border-2 border-carnatic-gold text-center relative">
-                    <span class="absolute -top-3 left-1/2 -translate-x-1/2 bg-carnatic-maroon text-carnatic-gold text-[10px] font-bold px-3 py-0.5 rounded-full uppercase">Most Popular</span>
-                    <h3 class="font-bold text-lg text-carnatic-maroon">Detailed + Gamakas</h3>
-                    <p class="text-2xl font-bold my-2 text-carnatic-maroon">LKR 3,000</p>
-                    <p class="text-xs text-gray-500 mb-4">Recommended for performing artists and advanced students.</p>
-                    <ul class="text-xs text-gray-600 space-y-2 text-left list-disc list-inside">
-                        <li>Microtonal Gamaka markings</li>
-                        <li>Taala beats & sub-divisions</li>
-                        <li>PDF delivery in 1-2 days</li>
-                    </ul>
-                </div>
-
-                <div class="bg-white p-6 rounded-xl shadow-sm border border-amber-200 text-center">
-                    <h3 class="font-bold text-lg text-carnatic-maroon">Custom / Audio Guide</h3>
-                    <p class="text-2xl font-bold my-2 text-carnatic-goldDark">LKR 5,000</p>
-                    <p class="text-xs text-gray-500 mb-4">For rare compositions, fusion, or movie song classical notations.</p>
-                    <ul class="text-xs text-gray-600 space-y-2 text-left list-disc list-inside">
-                        <li>Full Notation + Gamakas</li>
-                        <li>Slow Audio Learning Track</li>
-                        <li>Priority delivery within 24 hours</li>
-                    </ul>
-                </div>
-            </div>
-
-            <!-- FAQ Accordion -->
-            <div class="max-w-3xl mx-auto space-y-4">
-                <details class="bg-white p-4 rounded-lg shadow-sm border border-amber-200 cursor-pointer">
-                    <summary class="font-semibold text-sm text-carnatic-maroon">How do I receive my completed notation?</summary>
-                    <p class="text-xs text-gray-600 mt-2 pl-4">Once your order and LKR payment are verified, we will send the high-resolution PDF notation directly to your registered Email and WhatsApp number.</p>
-                </details>
-
-                <details class="bg-white p-4 rounded-lg shadow-sm border border-amber-200 cursor-pointer">
-                    <summary class="font-semibold text-sm text-carnatic-maroon">Can I upload non-classical or film songs in Carnatic format?</summary>
-                    <p class="text-xs text-gray-600 mt-2 pl-4">Yes! We transcribe light music, film songs, and devotional tracks into accurate Carnatic Swara format (Sa Re Ga Ma...).</p>
-                </details>
-            </div>
-        </section>
-
-        <!-- Contact Section -->
-        <section id="contact" class="scroll-mt-24">
-            <div class="bg-carnatic-maroon text-white p-8 rounded-xl shadow-lg border border-carnatic-gold text-center max-w-3xl mx-auto">
-                <h2 class="text-2xl font-bold text-carnatic-gold mb-2">Have Questions Before Ordering?</h2>
-                <p class="text-sm text-amber-100 mb-6">Reach out directly via WhatsApp for quick inquiries regarding custom songs or bank payments.</p>
-                <div class="flex justify-center gap-4 text-xs font-semibold">
-                    <a href="https://wa.me/94700000000" target="_blank" class="bg-emerald-600 hover:bg-emerald-700 text-white px-6 py-2.5 rounded-lg flex items-center">
-                        <i class="fa-brands fa-whatsapp text-base mr-2"></i> Chat on WhatsApp
+        <div id="resultContainer" class="hidden border border-slate-200 rounded-xl p-6 bg-slate-50 mt-6 relative">
+            <div id="paywallOverlay" class="absolute inset-0 bg-slate-900/40 backdrop-blur-xs flex flex-col items-center justify-center rounded-xl p-6 text-center z-10">
+                <div class="bg-white p-6 rounded-xl shadow-lg max-w-sm">
+                    <h3 class="text-lg font-bold text-slate-900 mb-1">Unlock Full Notation</h3>
+                    <p class="text-slate-600 text-sm mb-4">Pay <strong>LKR 100</strong> to view the unblurred notation and download the PDF.</p>
+                    
+                    <!-- Replace with your LKR payment link (e.g. PayHere / Stripe link) -->
+                    <a href="YOUR_LKR_PAYMENT_LINK_HERE" target="_blank" onclick="simulatePaymentSuccess()" 
+                       class="block w-full bg-emerald-600 hover:bg-emerald-700 text-white font-semibold py-2.5 rounded-lg mb-2 transition">
+                        Pay LKR 100 Now
                     </a>
+                    <button onclick="simulatePaymentSuccess()" class="text-xs text-indigo-600 underline">
+                        (Demo: Click here to simulate payment approval)
+                    </button>
                 </div>
             </div>
-        </section>
-
-    </main>
-
-    <!-- Footer -->
-    <footer class="bg-carnatic-deepMaroon text-amber-200/80 text-xs py-6 border-t border-carnatic-gold/40">
-        <div class="max-w-6xl mx-auto px-4 text-center space-y-2">
-            <p>&copy; Carnatic Music Notation Services. All prices listed in Sri Lankan Rupees (LKR).</p>
-            <p class="text-[11px] text-amber-200/50">Designed for Classical Carnatic Musicians, Students, and Enthusiasts.</p>
+            <div id="pdfContent" class="bg-white p-6 rounded-lg shadow-sm blurred-content">
+                <h2 id="outputTitle" class="text-xl font-bold text-slate-900 mb-4 border-b pb-2"></h2>
+                <div id="outputBody" class="prose max-w-none text-slate-700 space-y-4"></div>
+            </div>
+            <button id="downloadBtn" onclick="downloadPDF()" disabled 
+                class="mt-6 w-full bg-slate-400 text-white font-semibold py-3 rounded-lg cursor-not-allowed transition duration-200 flex items-center justify-center gap-2">
+                Download PDF (Unlock First)
+            </button>
         </div>
-    </footer>
-
-    <!-- JavaScript Interactivity -->
+    </div>
     <script>
-        // Mobile Navigation Toggle
-        const menuBtn = document.getElementById('menuBtn');
-        const navMenu = document.getElementById('navMenu');
-
-        menuBtn.addEventListener('click', () => {
-            navMenu.classList.toggle('hidden');
-        });
-
-        // Live Order Form State
-        const form = document.getElementById('notationOrderForm');
-        const songTitleInput = document.getElementById('songTitle');
-        const tierRadios = document.getElementsByName('tier');
-        
-        const summaryPackageName = document.getElementById('summaryPackageName');
-        const summarySongTitle = document.getElementById('summarySongTitle');
-        const summaryTotal = document.getElementById('summaryTotal');
-
-        function updateSummary() {
-            // Update Song Title Summary
-            const titleVal = songTitleInput.value.trim();
-            summarySongTitle.textContent = titleVal ? titleVal : "Not entered yet";
-
-            // Update Selected Tier
-            let selectedPrice = 1500;
-            let selectedName = "Basic Notation";
-
-            tierRadios.forEach(radio => {
-                if (radio.checked) {
-                    selectedPrice = parseInt(radio.value);
-                    selectedName = radio.getAttribute('data-name');
-                }
-            });
-
-            summaryPackageName.textContent = selectedName;
-            summaryTotal.textContent = `LKR ${selectedPrice.toLocaleString()}`;
-        }
-
-        // Event Listeners for Dynamic Calculation
-        songTitleInput.addEventListener('input', updateSummary);
-        tierRadios.forEach(radio => radio.addEventListener('change', updateSummary));
-
-        // Form Submission - Order Reference Ticket Modal
-        form.addEventListener('submit', (e) => {
-            e.preventDefault();
-
-            const refNo = "CM-LKR-" + Math.floor(100000 + Math.random() * 900000);
-            const songTitle = songTitleInput.value;
-            const custName = document.getElementById('custName').value;
-            const custEmail = document.getElementById('custEmail').value;
-            const custPhone = document.getElementById('custPhone').value;
-            const songLink = document.getElementById('songLink').value || "None provided";
-            
-            let selectedPrice = 1500;
-            let selectedName = "Basic Notation";
-            tierRadios.forEach(radio => {
-                if (radio.checked) {
-                    selectedPrice = parseInt(radio.value);
-                    selectedName = radio.getAttribute('data-name');
-                }
-            });
-
-            const ticketContent = document.getElementById('ticketContent');
-            ticketContent.innerHTML = `
-                <p class="font-bold text-carnatic-maroon">REF NO: ${refNo}</p>
-                <p><strong>Customer:</strong> ${custName}</p>
-                <p><strong>Contact:</strong> ${custPhone} (${custEmail})</p>
-                <p><strong>Song:</strong> ${songTitle}</p>
-                <p><strong>Song Link:</strong> ${songLink}</p>
-                <p><strong>Package:</strong> ${selectedName}</p>
-                <p class="text-sm font-bold text-carnatic-maroon border-t border-amber-200 pt-1 mt-1">Total Due: LKR ${selectedPrice.toLocaleString()}</p>
-            `;
-
-            document.getElementById('ticketModal').classList.remove('hidden');
-        });
-
-        function closeTicketModal() {
-            document.getElementById('ticketModal').classList.add('hidden');
-        }
-
-        function handleMockPayment(gatewayName) {
-            const songTitle = songTitleInput.value.trim();
-            if (!songTitle) {
-                alert("Please fill in the Song Title before selecting a payment gateway.");
-                songTitleInput.focus();
+        async function generateNotation() {
+            const apiKey = document.getElementById('apiKey').value.trim();
+            const song = document.getElementById('songInput').value.trim();
+            const audioFile = document.getElementById('audioInput').files[0];
+            const raga = document.getElementById('ragaInput').value.trim();
+            const instrument = document.getElementById('instrumentInput').value;
+            if (!apiKey) {
+                alert('Please enter your Google Gemini API key.');
                 return;
             }
-            alert(`Redirecting to ${gatewayName} gateway in Sri Lankan Rupees (LKR)...`);
+            if (!song && !audioFile) {
+                alert('Please provide a song name/link or select an audio file.');
+                return;
+            }
+            document.getElementById('loader').classList.remove('hidden');
+            document.getElementById('resultContainer').classList.add('hidden');
+            let prompt = `Generate authentic Carnatic music notation (Swara, Tala, Raga, Arohana, Avarohana, and Sahitya lines) formatted cleanly in HTML tables.`;
+            if (song) prompt += ` Song reference: "${song}".`;
+            if (audioFile) prompt += ` Audio filename: "${audioFile.name}".`;
+            if (raga) prompt += ` Raga: "${raga}".`;
+            prompt += ` Instrument style: "${instrument}". Do not include markdown blocks, output direct HTML fragments.`;
+            try {
+                const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-3.8-flash:generateContent?key=${apiKey}`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        contents: [{ parts: [{ text: prompt }] }]
+                    })
+                });
+                const data = await response.json();
+                if (data.candidates && data.candidates[0].content.parts[0].text) {
+                    let aiText = data.candidates[0].content.parts[0].text;
+                    aiText = aiText.replace(/```html/g, '').replace(/```/g, '');
+
+                    document.getElementById('outputTitle').innerText = `Notation for: ${song || audioFile.name}`;
+                    document.getElementById('outputBody').innerHTML = aiText;
+                    
+                    // Show result with blur overlay enabled
+                    document.getElementById('resultContainer').classList.remove('hidden');
+                    document.getElementById('paywallOverlay').classList.remove('hidden');
+                    document.getElementById('pdfContent').classList.add('blurred-content');
+                } else {
+                    alert('Error generating notation. Check your API key and try again.');
+                }
+            } catch (error) {
+                console.error(error);
+                alert('Failed to connect to the AI API.');
+            } finally {
+                document.getElementById('loader').classList.add('hidden');
+            }
+        }
+        function simulatePaymentSuccess() {
+            document.getElementById('paywallOverlay').classList.add('hidden');
+            document.getElementById('pdfContent').classList.remove('blurred-content');
+            const dlBtn = document.getElementById('downloadBtn');
+            dlBtn.disabled = false;
+            dlBtn.classList.remove('bg-slate-400', 'cursor-not-allowed');
+            dlBtn.classList.add('bg-emerald-600', 'hover:bg-emerald-700', 'cursor-pointer');
+            dlBtn.innerText = 'Download Notation as PDF';
+        }
+        function downloadPDF() {
+            const element = document.getElementById('pdfContent');
+            const options = {
+                margin:       10,
+                filename:     'carnatic-notation.pdf',
+                image:        { type: 'jpeg', quality: 0.98 },
+                html2canvas:  { scale: 2 },
+                jsPDF:        { unit: 'mm', format: 'a4', orientation: 'portrait' }
+            };
+            html2pdf().from(element).set(options).save();
         }
     </script>
 </body>
