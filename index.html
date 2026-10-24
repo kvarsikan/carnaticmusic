@@ -1,523 +1,1201 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Carnatic Music - Classical Notations</title>
-    <!-- Tailwind CSS CDN -->
-    <script src="https://cdn.tailwindcss.com"></script>
-    <script>
-        tailwind.config = {
-            theme: {
-                extend: {
-                    colors: {
-                        carnatic: {
-                            maroon: '#600010',
-                            deepMaroon: '#40000a',
-                            gold: '#D4AF37',
-                            goldDark: '#AA820A',
-                            cream: '#FAF6EF',
-                            creamCard: '#FFFFFF',
-                            text: '#2B1810',
-                            accent: '#8B0000'
-                        }
-                    },
-                    fontFamily: {
-                        sans: ['Inter', 'serif']
-                    }
-                }
-            }
-        }
-    </script>
-    <!-- FontAwesome Icons -->
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <style>
-        body {
-            background-color: #FAF6EF;
-            color: #2B1810;
-        }
-        .gold-gradient {
-            background: linear-gradient(135deg, #D4AF37 0%, #AA820A 100%);
-        }
-        .maroon-gradient {
-            background: linear-gradient(135deg, #600010 0%, #300008 100%);
-        }
-        .notation-font {
-            font-family: 'Courier New', Courier, monospace;
-        }
-    </style>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Swaralayam — Carnatic AI Transcriber</title>
+<meta name="description" content="Convert Carnatic music recordings into formal swara notation — Pallavi, Anupallavi and Charanam — with sthayi marks and talam dividers.">
+<meta name="theme-color" content="#4A0E17">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,500;0,600;0,700;1,500&family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@400;500;600&family=Noto+Serif+Tamil:wght@600&display=swap" rel="stylesheet">
+
+<style>
+:root{
+  --maroon:#4A0E17; --maroon-deep:#2a060d; --maroon-mid:#6b1a27;
+  --gold:#D4AF37; --gold-soft:#ecd98a; --gold-deep:#9c7a14;
+  --parchment:#FDFBF7; --parchment-2:#f4ecdc; --ink:#2b1a1c; --muted:#7a6a63;
+  --ok:#2e7d4f; --err:#b3261e; --mandra:#1f6f78; --tara:#9a2a2a;
+  --radius:18px;
+  --serif:'Cormorant Garamond','Playfair Display',Georgia,'Times New Roman',serif;
+  --sans:'Inter',system-ui,-apple-system,'Segoe UI',Roboto,Helvetica,Arial,sans-serif;
+  --mono:'JetBrains Mono',ui-monospace,SFMono-Regular,Menlo,Consolas,'Liberation Mono',monospace;
+}
+*{box-sizing:border-box}
+[hidden]{display:none!important}
+html{-webkit-text-size-adjust:100%;scroll-behavior:smooth}
+body{
+  margin:0;font-family:var(--sans);color:var(--parchment);line-height:1.55;min-height:100vh;
+  background:
+    radial-gradient(1100px 560px at 85% -8%, rgba(212,175,55,.20), transparent 60%),
+    radial-gradient(900px 600px at -10% 18%, rgba(176,48,70,.34), transparent 60%),
+    linear-gradient(180deg,#4A0E17 0%,#350a11 55%,#240509 100%);
+  background-attachment:fixed;
+}
+body::before{
+  content:"";position:fixed;inset:0;pointer-events:none;opacity:.07;z-index:0;
+  background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='64' height='64'%3E%3Cpath d='M32 4 60 32 32 60 4 32Z' fill='none' stroke='%23D4AF37' stroke-width='1'/%3E%3Ccircle cx='32' cy='32' r='4' fill='none' stroke='%23D4AF37'/%3E%3C/svg%3E");
+}
+.wrap{position:relative;z-index:1;width:100%;max-width:1060px;margin:0 auto;padding:0 20px}
+a{color:var(--gold-soft)}
+button{font:inherit;cursor:pointer}
+:focus-visible{outline:3px solid var(--gold);outline-offset:2px;border-radius:6px}
+
+/* ---------- Header ---------- */
+.top{display:flex;align-items:center;justify-content:space-between;padding:18px 20px}
+.brand{display:flex;align-items:center;gap:12px;text-decoration:none;color:inherit}
+.brand-name{display:block;font-family:var(--serif);font-size:1.7rem;font-weight:700;letter-spacing:.02em;color:var(--parchment);line-height:1}
+.brand-tamil{display:block;font-family:'Noto Serif Tamil',var(--serif);font-size:.82rem;color:var(--gold);letter-spacing:.06em;margin-top:4px}
+.icon-btn{display:inline-flex;align-items:center;gap:8px;padding:9px 14px;border-radius:999px;color:var(--parchment);
+  background:rgba(255,255,255,.08);border:1px solid rgba(212,175,55,.45);backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px)}
+.icon-btn:hover{background:rgba(212,175,55,.18)}
+
+/* ---------- Hero ---------- */
+.hero{padding:26px 0 30px;text-align:center}
+.eyebrow{margin:0 0 6px;font-size:.74rem;letter-spacing:.22em;text-transform:uppercase;color:var(--gold);font-weight:600}
+.hero h1{font-family:var(--serif);font-weight:600;font-size:clamp(2.1rem,6vw,3.6rem);line-height:1.08;margin:0 0 14px}
+.hero h1 em{color:var(--gold);font-style:italic}
+.lead{max-width:640px;margin:0 auto;color:rgba(253,251,247,.82);font-size:1.05rem}
+.trust{list-style:none;margin:22px 0 0;padding:0;display:flex;flex-wrap:wrap;gap:10px;justify-content:center}
+.trust li{padding:7px 14px;border-radius:999px;font-size:.82rem;background:rgba(255,255,255,.07);border:1px solid rgba(212,175,55,.3);backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px)}
+
+/* ---------- Cards ---------- */
+.card{
+  background:var(--parchment);color:var(--ink);border-radius:var(--radius);padding:clamp(18px,4vw,32px);
+  border:1px solid rgba(212,175,55,.55);margin-bottom:26px;
+  box-shadow:0 26px 60px rgba(0,0,0,.38),inset 0 0 0 4px var(--parchment),inset 0 0 0 5px rgba(212,175,55,.35);
+}
+.glass{background:rgba(255,255,255,.08);border:1px solid rgba(212,175,55,.32);border-radius:var(--radius);
+  backdrop-filter:blur(16px) saturate(140%);-webkit-backdrop-filter:blur(16px) saturate(140%);box-shadow:0 18px 50px rgba(0,0,0,.3)}
+.card h2{font-family:var(--serif);font-size:1.7rem;margin:0 0 4px;color:var(--maroon)}
+.step-label{display:flex;align-items:center;gap:10px;margin:22px 0 12px;font-family:var(--serif);font-size:1.25rem;font-weight:700;color:var(--maroon)}
+.step-label:first-of-type{margin-top:0}
+.step-label .n{display:inline-grid;place-items:center;width:28px;height:28px;border-radius:50%;background:var(--maroon);color:var(--gold);font:600 .85rem var(--sans)}
+.banner{display:flex;gap:12px;align-items:center;justify-content:space-between;flex-wrap:wrap;padding:12px 16px;margin-bottom:20px;border-radius:12px;
+  background:#fff6df;border:1px solid #e6cf85;color:#5b4208;font-size:.92rem}
+.banner button{background:var(--maroon);color:var(--gold);border:0;border-radius:999px;padding:7px 14px;font-weight:600}
+
+/* ---------- Segmented control ---------- */
+.seg{display:grid;grid-template-columns:repeat(2,1fr);gap:4px;padding:4px;background:var(--parchment-2);border-radius:12px;border:1px solid rgba(74,14,23,.12)}
+.seg.seg3{grid-template-columns:repeat(3,1fr)}
+.seg button{border:0;background:transparent;color:var(--muted);padding:10px 8px;border-radius:9px;font-weight:600;font-size:.92rem}
+.seg button[aria-selected="true"]{background:var(--maroon);color:var(--gold);box-shadow:0 4px 12px rgba(74,14,23,.3)}
+
+/* ---------- Dropzone ---------- */
+.drop{margin-top:14px;border:2px dashed rgba(156,122,20,.7);border-radius:14px;padding:30px 18px;text-align:center;cursor:pointer;
+  background:linear-gradient(180deg,#fffdf8,#f9f2e2);transition:.2s}
+.drop:hover,.drop.over{border-color:var(--maroon);background:#fff6df;transform:translateY(-1px)}
+.drop .big{font-family:var(--serif);font-size:1.35rem;font-weight:700;color:var(--maroon)}
+.drop .sub{color:var(--muted);font-size:.9rem;margin-top:4px}
+.drop svg{width:44px;height:44px;margin-bottom:8px}
+.file-card{margin-top:14px;display:grid;grid-template-columns:1fr auto;gap:8px 12px;align-items:center;padding:14px;border-radius:12px;background:var(--parchment-2);border:1px solid rgba(74,14,23,.12)}
+.file-card .name{font-weight:600;word-break:break-all}
+.file-card .meta{color:var(--muted);font-size:.85rem}
+.file-card audio{grid-column:1/-1;width:100%;height:40px}
+.link-btn{background:none;border:0;color:var(--err);font-weight:600;text-decoration:underline}
+
+/* ---------- Fields ---------- */
+.field{display:flex;flex-direction:column;gap:6px}
+.field label{font-size:.78rem;letter-spacing:.08em;text-transform:uppercase;font-weight:600;color:var(--maroon)}
+.field input,.field select{width:100%;padding:12px 14px;border-radius:10px;border:1px solid rgba(74,14,23,.28);background:#fff;color:var(--ink);font:inherit}
+.field input:focus,.field select:focus{border-color:var(--maroon);outline:3px solid rgba(212,175,55,.45)}
+.field .hint{font-size:.8rem;color:var(--muted)}
+.grid3{display:grid;grid-template-columns:repeat(auto-fit,minmax(210px,1fr));gap:16px}
+.grid2{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+@media (max-width:520px){.grid2{grid-template-columns:1fr}}
+
+/* ---------- Buttons ---------- */
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:8px;padding:11px 18px;border-radius:12px;border:1px solid transparent;font-weight:600;font-size:.95rem;transition:.18s}
+.btn.primary{background:linear-gradient(135deg,#e9c95a,#D4AF37 55%,#b8921c);color:var(--maroon);box-shadow:0 8px 22px rgba(212,175,55,.35)}
+.btn.primary:hover:not(:disabled){transform:translateY(-1px);box-shadow:0 12px 28px rgba(212,175,55,.5)}
+.btn.primary:disabled{opacity:.55;cursor:not-allowed}
+.btn.dark{background:var(--maroon);color:var(--gold)}
+.btn.ghost{background:#fff;color:var(--maroon);border-color:rgba(74,14,23,.28)}
+.btn.ghost:hover{background:var(--parchment-2)}
+.btn.block{width:100%;padding:14px 18px;font-size:1.02rem}
+.btn.sm{padding:7px 12px;font-size:.85rem;border-radius:9px}
+
+.buy{margin-top:26px;display:flex;flex-wrap:wrap;gap:16px;align-items:center;justify-content:space-between;padding:16px 18px;border-radius:14px;background:var(--maroon);color:var(--parchment)}
+.price{display:flex;align-items:baseline;gap:10px}
+.price b{font-family:var(--serif);font-size:2rem;color:var(--gold);line-height:1}
+.price span{font-size:.85rem;color:rgba(253,251,247,.75)}
+.credit-pill{display:inline-flex;align-items:center;gap:8px;margin-top:10px;padding:6px 12px;border-radius:999px;background:rgba(46,125,79,.15);color:#bfe9cf;font-size:.82rem;border:1px solid rgba(46,125,79,.5)}
+.err-box{margin-top:16px;padding:12px 14px;border-radius:10px;background:#fdecea;border:1px solid #f1b4ae;color:#7a1c14;font-size:.92rem}
+
+/* ---------- Overlay / modals / drawer ---------- */
+.overlay{position:fixed;inset:0;z-index:60;display:flex;align-items:center;justify-content:center;padding:18px;overflow:auto;
+  background:radial-gradient(900px 500px at 50% 0%,rgba(212,175,55,.16),transparent 60%),rgba(26,4,8,.94)}
+.proc{width:100%;max-width:640px;padding:clamp(18px,4vw,32px);text-align:center;color:var(--parchment)}
+.proc h2{font-family:var(--serif);font-size:1.9rem;margin:0 0 4px}
+#waveCanvas{width:100%;height:220px;display:block;margin:10px 0 6px}
+.steps{list-style:none;margin:14px 0 0;padding:0;text-align:left;display:grid;gap:10px}
+.steps li{display:flex;gap:12px;align-items:center;padding:11px 14px;border-radius:12px;background:rgba(255,255,255,.05);border:1px solid rgba(212,175,55,.18);color:rgba(253,251,247,.55);transition:.3s}
+.steps .dot{flex:none;width:24px;height:24px;border-radius:50%;display:grid;place-items:center;font-size:.8rem;border:1px solid rgba(212,175,55,.4)}
+.steps li.active{color:var(--parchment);border-color:var(--gold);background:rgba(212,175,55,.12);box-shadow:0 0 22px rgba(212,175,55,.22)}
+.steps li.active .dot{background:var(--gold);color:var(--maroon);animation:pulse 1.2s infinite}
+.steps li.done{color:var(--parchment)}
+.steps li.done .dot{background:var(--ok);border-color:var(--ok);color:#fff}
+@keyframes pulse{50%{box-shadow:0 0 0 7px rgba(212,175,55,.25)}}
+.bar-track{height:6px;border-radius:99px;background:rgba(255,255,255,.1);margin-top:16px;overflow:hidden}
+.bar-fill{height:100%;width:0;background:linear-gradient(90deg,var(--gold-deep),var(--gold),var(--gold-soft));transition:width .6s ease}
+.proc .msg{min-height:1.5em;color:var(--gold-soft);font-style:italic;font-family:var(--serif);font-size:1.15rem}
+.proc .small{font-size:.8rem;color:rgba(253,251,247,.6);margin-top:12px}
+
+.backdrop{position:fixed;inset:0;z-index:70;display:flex;align-items:center;justify-content:center;padding:14px;background:rgba(20,3,7,.72);backdrop-filter:blur(6px);-webkit-backdrop-filter:blur(6px)}
+.modal{width:100%;max-width:540px;max-height:94vh;overflow:auto;background:var(--parchment);color:var(--ink);border-radius:20px;border:1px solid rgba(212,175,55,.6);box-shadow:0 30px 80px rgba(0,0,0,.55)}
+.modal-head{display:flex;justify-content:space-between;align-items:flex-start;gap:12px;padding:20px 22px;background:linear-gradient(135deg,var(--maroon),var(--maroon-mid));color:var(--parchment)}
+.modal-head h2{margin:0;font-family:var(--serif);font-size:1.7rem;color:var(--parchment)}
+.x{background:rgba(255,255,255,.12);border:1px solid rgba(212,175,55,.5);color:var(--parchment);width:34px;height:34px;border-radius:50%;font-size:1.2rem;line-height:1}
+.sim-banner{padding:8px 22px;background:#fff3c9;color:#6b4e00;font-size:.8rem;font-weight:600;border-bottom:1px solid #ecd48a}
+.modal-body{padding:20px 22px 24px}
+.order{border:1px dashed rgba(74,14,23,.3);border-radius:12px;padding:12px 14px;margin-bottom:16px;background:#fff;font-size:.92rem}
+.order .row{display:flex;justify-content:space-between;gap:10px;padding:3px 0}
+.order .row.total{border-top:1px solid rgba(74,14,23,.15);margin-top:6px;padding-top:8px;font-weight:700;font-size:1.05rem;color:var(--maroon)}
+.order .muted{color:var(--muted);font-size:.82rem}
+.mpanel{display:grid;gap:12px;margin:16px 0}
+.pay-state{text-align:center;padding:22px 6px}
+.pay-state h3{font-family:var(--serif);font-size:1.6rem;margin:12px 0 4px;color:var(--maroon)}
+.spinner{width:54px;height:54px;border-radius:50%;margin:0 auto;border:4px solid rgba(212,175,55,.3);border-top-color:var(--maroon);animation:spin 1s linear infinite}
+@keyframes spin{to{transform:rotate(360deg)}}
+.tick{width:64px;height:64px;border-radius:50%;margin:0 auto;display:grid;place-items:center;background:var(--ok);color:#fff;font-size:2rem;animation:pop .4s ease}
+.tick.bad{background:var(--err)}
+@keyframes pop{from{transform:scale(.4);opacity:0}}
+.receipt{margin:14px auto 0;max-width:340px;text-align:left;font-family:var(--mono);font-size:.8rem;padding:12px 14px;border-radius:10px;background:#fff;border:1px dashed rgba(74,14,23,.35)}
+.receipt div{display:flex;justify-content:space-between;gap:10px;padding:2px 0}
+
+.scrim{position:fixed;inset:0;z-index:75;background:rgba(20,3,7,.6);opacity:0;pointer-events:none;transition:.3s}
+.scrim.show{opacity:1;pointer-events:auto}
+.drawer{position:fixed;top:0;right:0;height:100%;width:min(440px,100%);z-index:80;background:var(--parchment);color:var(--ink);
+  transform:translateX(105%);transition:transform .35s cubic-bezier(.2,.8,.2,1);box-shadow:-20px 0 60px rgba(0,0,0,.45);overflow:auto;border-left:2px solid var(--gold)}
+.drawer.open{transform:none}
+.drawer .modal-head{position:sticky;top:0}
+.drawer .body{padding:22px;display:grid;gap:16px}
+.drawer ol{margin:0;padding-left:20px;font-size:.88rem;color:#4a3b3d}
+.drawer code{font-family:var(--mono);font-size:.82em;background:var(--parchment-2);padding:1px 5px;border-radius:5px}
+.test-out{font-size:.88rem;padding:10px 12px;border-radius:10px;background:var(--parchment-2)}
+.test-out.ok{background:#e4f4ea;color:#1c5b36}.test-out.bad{background:#fdecea;color:#7a1c14}
+
+.toast{position:fixed;left:50%;bottom:22px;transform:translate(-50%,30px);opacity:0;z-index:100;max-width:min(520px,92vw);padding:12px 18px;border-radius:12px;
+  background:var(--maroon);color:var(--parchment);border:1px solid var(--gold);box-shadow:0 14px 40px rgba(0,0,0,.45);transition:.3s;pointer-events:none;font-size:.92rem}
+.toast.show{opacity:1;transform:translate(-50%,0)}
+.toast.bad{background:#7a1c14}
+
+/* ---------- Notation output ---------- */
+.res-head{display:flex;flex-wrap:wrap;gap:12px;justify-content:space-between;align-items:flex-start}
+.res-head h2{font-size:clamp(1.6rem,4vw,2.3rem)}
+.chips{display:flex;flex-wrap:wrap;gap:8px;margin:10px 0 0}
+.chip{padding:5px 12px;border-radius:999px;font-size:.82rem;background:var(--parchment-2);border:1px solid rgba(156,122,20,.5);color:var(--maroon)}
+.chip b{font-weight:600;color:var(--gold-deep)}
+.toolbar{display:flex;flex-wrap:wrap;gap:8px;align-items:center;margin:20px 0 6px;padding:12px;border-radius:14px;background:var(--parchment-2);border:1px solid rgba(74,14,23,.12)}
+.toolbar .sep{width:1px;align-self:stretch;background:rgba(74,14,23,.2);margin:0 4px}
+.tr{display:inline-flex;align-items:center;gap:6px}
+.tr .lbl{min-width:120px;text-align:center;font-weight:600;font-size:.88rem;color:var(--maroon)}
+.chk{display:inline-flex;align-items:center;gap:6px;font-size:.88rem;color:var(--maroon);font-weight:600}
+.legend{display:flex;flex-wrap:wrap;gap:14px;font-size:.82rem;color:var(--muted);margin:6px 2px 0}
+.legend span{font-family:var(--mono)}
+.legend .m{color:var(--mandra)}.legend .t{color:var(--tara)}
+.sec{margin-top:26px;break-inside:avoid-page}
+.sec-title{display:flex;align-items:center;gap:10px;font-family:var(--serif);font-size:1.7rem;margin:0 0 8px;color:var(--maroon);padding-bottom:6px;border-bottom:2px solid var(--gold)}
+.sec-title::before{content:"◆";color:var(--gold);font-size:.8em}
+.av{display:grid;grid-template-columns:30px 1fr;gap:10px;padding:10px 4px;border-bottom:1px dotted rgba(74,14,23,.22)}
+.av-n{width:24px;height:24px;margin-top:4px;border-radius:50%;display:grid;place-items:center;font:600 .72rem var(--sans);color:var(--gold);background:var(--maroon)}
+.swaras{font-family:var(--mono);font-size:clamp(13px,3.7vw,18px);line-height:1.5;display:flex;flex-wrap:wrap;align-items:flex-start;color:var(--ink)}
+.cell{display:inline-flex;flex-direction:column;align-items:center;min-width:3.5ch;padding:0 .25ch}
+.cell .t{white-space:nowrap}
+.cell .t sub{font-size:.66em;position:relative;top:.2em;vertical-align:baseline}
+.cell .b{font-size:.62em;min-height:1.3em;color:var(--muted)}
+.cell.mandra .t{color:var(--mandra);font-weight:600}
+.cell.tara .t{color:var(--tara);font-weight:600}
+.cell.madhya .t{font-weight:500}
+.cell .pn{color:var(--muted)}
+.cell.bar .t,.cell.dbar .t{color:var(--gold-deep);font-weight:700;padding:0 .5ch}
+.cell.dbar .t{letter-spacing:-.15em}
+.cell.ext .t{color:var(--muted)}
+.cell.txt .t{color:var(--muted);font-style:italic}
+.sahitya{font-family:var(--serif);font-style:italic;font-size:1.1rem;color:#5b3a3f;margin-top:4px}
+.notes{margin-top:26px;padding:14px 16px;border-radius:12px;background:var(--parchment-2);border-left:4px solid var(--gold);font-size:.92rem}
+.notes b{font-family:var(--serif);font-size:1.1rem;color:var(--maroon)}
+.disclaimer{margin-top:18px;font-size:.8rem;color:var(--muted)}
+footer{position:relative;z-index:1;text-align:center;padding:18px 20px 40px;color:rgba(253,251,247,.6);font-size:.82rem}
+
+@media (max-width:640px){
+  .icon-btn span{display:none}
+  .buy{flex-direction:column;align-items:stretch}
+  .toolbar .sep{display:none}
+}
+@media (prefers-reduced-motion:reduce){*{animation-duration:.01ms!important;transition-duration:.01ms!important}}
+
+@media print{
+  @page{margin:14mm}
+  body{background:#fff!important;color:#000}
+  body::before{display:none}
+  .no-print,.top,.hero,#inputCard,.toolbar,footer,.overlay,.backdrop,.drawer,.scrim,.toast{display:none!important}
+  .card{box-shadow:none!important;border:0!important;padding:0!important;margin:0!important}
+  .swaras{font-size:12.5px}
+  .cell.mandra .t,.cell.tara .t,.cell.bar .t,.cell.dbar .t{-webkit-print-color-adjust:exact;print-color-adjust:exact}
+}
+</style>
 </head>
-<body class="min-h-screen flex flex-col font-sans">
 
-    <!-- Header & Navigation -->
-    <header class="maroon-gradient text-white shadow-lg sticky top-0 z-50 border-b-2 border-carnatic-gold">
-        <div class="max-w-6xl mx-auto px-4 py-4 flex flex-wrap justify-between items-center">
-            <a href="#" class="flex items-center space-x-3">
-                <div class="w-10 h-10 rounded-full border-2 border-carnatic-gold flex items-center justify-center bg-carnatic-deepMaroon">
-                    <i class="fa-solid font-bold text-carnatic-gold text-lg">🪕</i>
-                </div>
-                <div>
-                    <h1 class="text-xl md:text-2xl font-bold tracking-wide text-carnatic-gold">Carnatic Music</h1>
-                    <p class="text-xs text-amber-200 tracking-wider uppercase">Authentic Swara Notations</p>
-                </div>
-            </a>
+<body>
 
-            <!-- Mobile Menu Toggle -->
-            <button id="menuBtn" class="md:hidden text-carnatic-gold focus:outline-none p-2" aria-label="Toggle Menu">
-                <i class="fa-solid fa-bars text-xl"></i>
-            </button>
+<header class="top no-print">
+  <a class="brand" href="#" aria-label="Swaralayam home">
+    <svg width="42" height="42" viewBox="0 0 48 48" aria-hidden="true">
+      <circle cx="24" cy="24" r="21" fill="none" stroke="#D4AF37" stroke-width="2"/>
+      <circle cx="24" cy="24" r="16.5" fill="rgba(212,175,55,.1)" stroke="#D4AF37" stroke-width=".8"/>
+      <path d="M9 25c3-11 6-11 9 0s6 11 9 0 5-7 12-5" fill="none" stroke="#D4AF37" stroke-width="2.2" stroke-linecap="round"/>
+    </svg>
+    <span><span class="brand-name">Swaralayam</span><span class="brand-tamil" lang="ta">ஸ்வரலயம்</span></span>
+  </a>
+  <button class="icon-btn" id="openSettings" aria-haspopup="dialog" aria-controls="drawer">
+    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.7 1.7 0 0 0 .3 1.8l.1.1a2 2 0 1 1-2.8 2.8l-.1-.1a1.7 1.7 0 0 0-1.8-.3 1.7 1.7 0 0 0-1 1.5V21a2 2 0 1 1-4 0v-.1a1.7 1.7 0 0 0-1.1-1.5 1.7 1.7 0 0 0-1.8.3l-.1.1a2 2 0 1 1-2.8-2.8l.1-.1a1.7 1.7 0 0 0 .3-1.8 1.7 1.7 0 0 0-1.5-1H3a2 2 0 1 1 0-4h.1a1.7 1.7 0 0 0 1.5-1.1 1.7 1.7 0 0 0-.3-1.8l-.1-.1a2 2 0 1 1 2.8-2.8l.1.1a1.7 1.7 0 0 0 1.8.3H9a1.7 1.7 0 0 0 1-1.5V3a2 2 0 1 1 4 0v.1a1.7 1.7 0 0 0 1 1.5 1.7 1.7 0 0 0 1.8-.3l.1-.1a2 2 0 1 1 2.8 2.8l-.1.1a1.7 1.7 0 0 0-.3 1.8V9a1.7 1.7 0 0 0 1.5 1H21a2 2 0 1 1 0 4h-.1a1.7 1.7 0 0 0-1.5 1z"/></svg>
+    <span>Settings</span>
+  </button>
+</header>
 
-            <!-- Navigation Links -->
-            <nav id="navMenu" class="hidden md:flex flex-col md:flex-row w-full md:w-auto mt-4 md:mt-0 space-y-2 md:space-y-0 md:space-x-6 text-sm font-medium">
-                <a href="#home" class="hover:text-carnatic-gold transition-colors py-1">Home</a>
-                <a href="#samples" class="hover:text-carnatic-gold transition-colors py-1">Sample Notations</a>
-                <a href="#order" class="hover:text-carnatic-gold transition-colors py-1">Order Notation</a>
-                <a href="#pricing" class="hover:text-carnatic-gold transition-colors py-1">Pricing & FAQ</a>
-                <a href="#contact" class="hover:text-carnatic-gold transition-colors py-1">Contact</a>
-            </nav>
-        </div>
-    </header>
+<main class="wrap">
+  <section class="hero no-print">
+    <p class="eyebrow">Carnatic AI Transcriber</p>
+    <h1>Hear a kriti. <em>Read</em> it in swaras.</h1>
+    <p class="lead">Upload a recording or paste a link. Swaralayam listens with Google Gemini and sets the melody as formal notation — Pallavi, Anupallavi, Charanam — with sthayi marks and talam dividers.</p>
+    <ul class="trust">
+      <li>🔐 API key never in the browser</li>
+      <li>🎼 Mandra · Madhya · Tara</li>
+      <li>🪔 LKR 100 per notation</li>
+    </ul>
+  </section>
 
-    <!-- Hero Section -->
-    <section id="home" class="maroon-gradient text-white py-16 px-4 border-b border-carnatic-gold/30 relative overflow-hidden">
-        <div class="max-w-4xl mx-auto text-center relative z-10">
-            <span class="inline-block px-3 py-1 bg-carnatic-gold/20 text-carnatic-gold text-xs font-semibold tracking-wider rounded-full border border-carnatic-gold/40 mb-4">
-                Sri Lankan Rupees (LKR) Payments
-            </span>
-            <h2 class="text-3xl md:text-5xl font-bold mb-4 leading-tight text-amber-100">
-                Custom Carnatic Swara Notations for Any Krithi or Song
-            </h2>
-            <p class="text-lg md:text-xl text-amber-200/90 mb-8 max-w-2xl mx-auto font-light">
-                Provide a song link or audio track, and receive accurate, beautifully formatted Carnatic notation transcriptions with Gamaka markings.
-            </p>
-            <div class="flex flex-col sm:flex-row justify-center gap-4">
-                <a href="#order" class="gold-gradient text-carnatic-deepMaroon px-8 py-3.5 rounded-lg font-bold shadow-lg hover:opacity-90 transition transform hover:-translate-y-0.5 text-center">
-                    Order Notation Now
-                </a>
-                <a href="#samples" class="bg-carnatic-deepMaroon/60 border border-carnatic-gold/50 text-carnatic-gold px-8 py-3.5 rounded-lg font-bold hover:bg-carnatic-deepMaroon transition text-center">
-                    View Sample Notation
-                </a>
-            </div>
-        </div>
-    </section>
+  <!-- ===== INPUT ===== -->
+  <section id="inputCard" class="card no-print" aria-labelledby="inputTitle">
+    <h2 id="inputTitle" class="sr-only" style="position:absolute;left:-9999px">Transcription input</h2>
 
-    <!-- Main Content Container -->
-    <main class="max-w-6xl mx-auto px-4 py-12 space-y-16 flex-grow">
+    <div id="setupBanner" class="banner" hidden>
+      <span>⚙ Add your Cloudflare Worker endpoint in Settings to enable transcription.</span>
+      <button type="button" id="bannerSettings">Open settings</button>
+    </div>
 
-        <!-- Sample Notation Showcase -->
-        <section id="samples" class="scroll-mt-24">
-            <div class="text-center mb-8">
-                <h2 class="text-2xl md:text-3xl font-bold text-carnatic-maroon">Sample Carnatic Notation Format</h2>
-                <p class="text-gray-600 mt-2">Every notation is structured with clear Raga details, Taala, and precise Swara mapping.</p>
-            </div>
+    <div class="step-label"><span class="n">1</span> Choose your recording</div>
+    <div class="seg" role="tablist" aria-label="Input mode">
+      <button type="button" role="tab" data-mode="file" aria-selected="true">⬆ Upload audio</button>
+      <button type="button" role="tab" data-mode="link" aria-selected="false">🔗 Audio link</button>
+    </div>
 
-            <div class="bg-white rounded-xl shadow-md border border-amber-200/60 overflow-hidden max-w-3xl mx-auto">
-                <div class="bg-carnatic-maroon text-white p-4 border-b border-carnatic-gold flex justify-between items-center">
-                    <div>
-                        <h3 class="font-bold text-lg text-carnatic-gold">Sample Krithi: Maha Ganapathim</h3>
-                        <p class="text-xs text-amber-200">Raga: Nata | Taala: Adi | Composer: Muthuswami Dikshitar</p>
-                    </div>
-                    <span class="text-xs bg-carnatic-gold/20 text-carnatic-gold border border-carnatic-gold px-2 py-1 rounded">Detailed Notation</span>
-                </div>
-                <div class="p-6 bg-amber-50/50 notation-font text-sm leading-relaxed overflow-x-auto space-y-4">
-                    <div class="border-b border-amber-200 pb-3">
-                        <p class="font-bold text-carnatic-maroon mb-1">Pallavi (Speed 1):</p>
-                        <p class="tracking-widest font-semibold text-gray-800">S , R2 G3 , | M1 P , | D2 N3 S' , ||</p>
-                        <p class="text-gray-500 text-xs tracking-wider">Ma - ha - Ga - | na - pa - | thi - m - - ||</p>
-                    </div>
-                    <div class="border-b border-amber-200 pb-3">
-                        <p class="font-bold text-carnatic-maroon mb-1">Anupallavi (With Gamaka Indicators):</p>
-                        <p class="tracking-widest font-semibold text-gray-800">P , (M1~P) G3 , | S , R2 , | G3 M1 P , ||</p>
-                        <p class="text-gray-500 text-xs tracking-wider">Man - sa - - - | smara - - | ra - - - ||</p>
-                    </div>
-                    <p class="text-xs italic text-gray-500">Note: Output formats are provided in easy-to-print PDF format.</p>
-                </div>
-            </div>
-        </section>
+    <div id="panelFile">
+      <div id="dropzone" class="drop" role="button" tabindex="0" aria-label="Choose or drop an audio file">
+        <svg viewBox="0 0 48 48" fill="none" stroke="#9c7a14" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M24 33V11M15 20l9-9 9 9"/><path d="M8 33v5a3 3 0 0 0 3 3h26a3 3 0 0 0 3-3v-5"/></svg>
+        <div class="big">Drag &amp; drop audio here</div>
+        <div class="sub">or click to browse · MP3, WAV, FLAC, AAC, OGG, M4A · up to <span id="maxMb">14</span> MB</div>
+      </div>
+      <input type="file" id="fileInput" accept="audio/*,.mp3,.wav,.aac,.ogg,.flac,.aiff,.aif,.m4a" hidden>
+      <div id="fileCard" class="file-card" hidden>
+        <div><div class="name" id="fileName"></div><div class="meta" id="fileMeta"></div></div>
+        <button type="button" class="link-btn" id="fileRemove">Remove</button>
+        <audio id="filePreview" controls preload="metadata"></audio>
+      </div>
+    </div>
 
-        <!-- Order Form & Live Summary Section -->
-        <section id="order" class="scroll-mt-24">
-            <div class="text-center mb-10">
-                <h2 class="text-2xl md:text-3xl font-bold text-carnatic-maroon">Request Custom Notation</h2>
-                <p class="text-gray-600 mt-2">Fill in the song details below and choose your preferred notation tier.</p>
-            </div>
+    <div id="panelLink" hidden style="margin-top:14px">
+      <div class="field">
+        <label for="linkInput">YouTube or direct audio URL</label>
+        <input type="url" id="linkInput" placeholder="https://www.youtube.com/watch?v=…" autocomplete="off" inputmode="url">
+        <span class="hint">Public YouTube links are analysed directly by Gemini. Other URLs must allow cross-origin downloads (CORS); if the site blocks it, upload the file instead.</span>
+      </div>
+    </div>
 
-            <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
-                
-                <!-- Order Form -->
-                <div class="lg:col-span-2 bg-white p-6 md:p-8 rounded-xl shadow-md border border-amber-200/80">
-                    <form id="notationOrderForm" class="space-y-6">
-                        
-                        <!-- Song Details -->
-                        <div>
-                            <h3 class="text-lg font-bold text-carnatic-maroon border-b border-amber-200 pb-2 mb-4 flex items-center">
-                                <i class="fa-solid fa-music text-carnatic-gold mr-2"></i> 1. Song Information
-                            </h3>
-                            
-                            <div class="space-y-4">
-                                <div>
-                                    <label for="songTitle" class="block text-sm font-semibold text-carnatic-text mb-1">Song / Composition Name *</label>
-                                    <input type="text" id="songTitle" required placeholder="e.g., Samajavaragamana or Movie/Album Song Title" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-carnatic-maroon focus:border-transparent outline-none text-sm">
-                                </div>
+    <div class="step-label"><span class="n">2</span> Musical parameters</div>
+    <div class="grid3">
+      <div class="field"><label for="ragaSel">Raga</label><select id="ragaSel"></select></div>
+      <div class="field"><label for="talamSel">Talam</label><select id="talamSel"></select></div>
+      <div class="field"><label for="sruthiSel">Pitch / Sruthi</label><select id="sruthiSel"></select></div>
+    </div>
 
-                                <div class="grid grid-cols-1 md:grid-cols-3 gap-3">
-                                    <div>
-                                        <label for="composer" class="block text-xs font-medium text-gray-600 mb-1">Composer (Optional)</label>
-                                        <input type="text" id="composer" placeholder="e.g., Tyagaraja" class="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm">
-                                    </div>
-                                    <div>
-                                        <label for="raaga" class="block text-xs font-medium text-gray-600 mb-1">Raga (Optional)</label>
-                                        <input type="text" id="raaga" placeholder="e.g., Hindolam" class="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm">
-                                    </div>
-                                    <div>
-                                        <label for="taala" class="block text-xs font-medium text-gray-600 mb-1">Taala (Optional)</label>
-                                        <input type="text" id="taala" placeholder="e.g., Adi / Rupakam" class="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm">
-                                    </div>
-                                </div>
+    <div id="errorBox" class="err-box" role="alert" hidden></div>
 
-                                <div>
-                                    <label for="songLink" class="block text-sm font-semibold text-carnatic-text mb-1">Song Link (YouTube / Google Drive / Audio URL)</label>
-                                    <input type="url" id="songLink" placeholder="https://www.youtube.com/watch?v=..." class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-carnatic-maroon focus:border-transparent outline-none text-sm">
-                                </div>
+    <div class="buy">
+      <div>
+        <div class="price"><b id="priceBig">LKR 100</b><span>per notation · one-time</span></div>
+        <div id="creditPill" class="credit-pill" hidden>✓ Payment received · <span id="creditReceipt"></span></div>
+      </div>
+      <button type="button" class="btn primary" id="payBtn"></button>
+    </div>
+    <p class="disclaimer">AI transcription is an approximation. Gamakas are simplified to the swara they land on — always verify against the recording.</p>
+  </section>
 
-                                <div>
-                                    <label class="block text-xs font-medium text-gray-600 mb-1">Or File Note / Custom Reference</label>
-                                    <div class="border-2 border-dashed border-amber-300 bg-amber-50/50 p-4 rounded-lg text-center cursor-pointer hover:bg-amber-50 transition" id="fileNoteBox">
-                                        <i class="fa-solid fa-cloud-arrow-up text-carnatic-gold text-2xl mb-1"></i>
-                                        <p class="text-xs text-gray-600">If you have a recorded file, paste the link above or mention details in special instructions below.</p>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
+  <!-- ===== RESULTS ===== -->
+  <section id="results" class="card" hidden aria-live="polite">
+    <div class="res-head">
+      <div>
+        <p class="eyebrow" style="color:var(--gold-deep)">Swara notation</p>
+        <h2 id="resTitle">Notation</h2>
+        <div class="chips" id="chips"></div>
+      </div>
+      <button type="button" class="btn dark no-print" id="newBtn">＋ New transcription</button>
+    </div>
 
-                        <!-- Tier Selection -->
-                        <div>
-                            <h3 class="text-lg font-bold text-carnatic-maroon border-b border-amber-200 pb-2 mb-4 flex items-center">
-                                <i class="fa-solid fa-layer-group text-carnatic-gold mr-2"></i> 2. Select Notation Package
-                            </h3>
+    <div class="toolbar no-print" role="toolbar" aria-label="Notation actions">
+      <button type="button" class="btn ghost sm" id="copyBtn">📋 Copy</button>
+      <button type="button" class="btn ghost sm" id="dlBtn">⬇ Download .txt</button>
+      <button type="button" class="btn ghost sm" id="printBtn">🖨 Print / PDF</button>
+      <span class="sep" aria-hidden="true"></span>
+      <span class="tr" aria-label="Transpose pitch">
+        <button type="button" class="btn ghost sm" id="trDown" aria-label="Lower sruthi by one semitone">−</button>
+        <span class="lbl" id="trLabel"></span>
+        <button type="button" class="btn ghost sm" id="trUp" aria-label="Raise sruthi by one semitone">+</button>
+        <button type="button" class="btn ghost sm" id="trReset" title="Back to original sruthi">↺</button>
+      </span>
+      <label class="chk"><input type="checkbox" id="westernToggle"> Western pitch</label>
+    </div>
+    <div class="legend no-print">
+      <span class="m">.Sa = Mandra</span><span>Sa = Madhya</span><span class="t">Sa. = Tara</span>
+      <span>| anga divider</span><span>|| avartanam end</span><span>, = hold</span>
+    </div>
 
-                            <div class="space-y-3">
-                                <label class="flex items-start p-3 border rounded-lg cursor-pointer transition hover:bg-amber-50 border-gray-200" id="tierLabelBasic">
-                                    <input type="radio" name="tier" value="1500" data-name="Basic Notation" checked class="mt-1 text-carnatic-maroon focus:ring-carnatic-maroon">
-                                    <div class="ml-3 flex-grow">
-                                        <div class="flex justify-between">
-                                            <span class="font-bold text-sm text-carnatic-text">Basic Notation</span>
-                                            <span class="font-bold text-carnatic-maroon text-sm">LKR 1,500</span>
-                                        </div>
-                                        <p class="text-xs text-gray-500 mt-0.5">Standard Swara notation for basic practice and learning.</p>
-                                    </div>
-                                </label>
+    <div id="notation"></div>
+    <div id="notesBox" class="notes" hidden></div>
+    <p class="disclaimer">Transposing moves the Sruthi (the pitch of Sa); the swara names stay the same and the Western pitch row follows. Generated by AI — verify against the recording.</p>
+  </section>
+</main>
 
-                                <label class="flex items-start p-3 border rounded-lg cursor-pointer transition hover:bg-amber-50 border-gray-200" id="tierLabelDetailed">
-                                    <input type="radio" name="tier" value="3000" data-name="Detailed Notation with Gamakas" class="mt-1 text-carnatic-maroon focus:ring-carnatic-maroon">
-                                    <div class="ml-3 flex-grow">
-                                        <div class="flex justify-between">
-                                            <span class="font-bold text-sm text-carnatic-text">Detailed Notation (Gamakas Included)</span>
-                                            <span class="font-bold text-carnatic-maroon text-sm">LKR 3,000</span>
-                                        </div>
-                                        <p class="text-xs text-gray-500 mt-0.5">Includes exact ornamentations (Gamakas), speed variations, and phrase breakdowns.</p>
-                                    </div>
-                                </label>
+<footer class="no-print">Swaralayam · Carnatic AI Transcriber · Payment flow shown here is a simulation</footer>
 
-                                <label class="flex items-start p-3 border rounded-lg cursor-pointer transition hover:bg-amber-50 border-gray-200" id="tierLabelCustom">
-                                    <input type="radio" name="tier" value="5000" data-name="Custom Arrangement & Audio Guide" class="mt-1 text-carnatic-maroon focus:ring-carnatic-maroon">
-                                    <div class="ml-3 flex-grow">
-                                        <div class="flex justify-between">
-                                            <span class="font-bold text-sm text-carnatic-text">Custom Arrangement & Guide</span>
-                                            <span class="font-bold text-carnatic-maroon text-sm">LKR 5,000</span>
-                                        </div>
-                                        <p class="text-xs text-gray-500 mt-0.5">Complete score + slow reference audio snippet for difficult passages.</p>
-                                    </div>
-                                </label>
-                            </div>
-                        </div>
+<!-- ===== PROCESSING OVERLAY ===== -->
+<div id="processing" class="overlay" hidden role="alertdialog" aria-modal="true" aria-labelledby="procTitle" aria-describedby="procMsg">
+  <div class="proc glass">
+    <p class="eyebrow">Transcribing</p>
+    <h2 id="procTitle">Listening to the strings…</h2>
+    <canvas id="waveCanvas" aria-hidden="true"></canvas>
+    <div class="msg" id="procMsg"></div>
+    <ul class="steps" id="stepList">
+      <li data-step="0"><span class="dot">1</span>Audio Analysis</li>
+      <li data-step="1"><span class="dot">2</span>Frequency-to-Swara Mapping</li>
+      <li data-step="2"><span class="dot">3</span>Structural Formatting <span style="opacity:.7">(Pallavi · Anupallavi · Charanam)</span></li>
+      <li data-step="3"><span class="dot">4</span>Rendering Notation</li>
+    </ul>
+    <div class="bar-track"><div class="bar-fill" id="procBar"></div></div>
+    <p class="small">Elapsed <span id="elapsed">0s</span> · long recordings can take a minute or two</p>
+    <button type="button" class="btn ghost sm" id="cancelBtn" style="margin-top:12px">Cancel (your payment is kept)</button>
+  </div>
+</div>
 
-                        <!-- Customer Info -->
-                        <div>
-                            <h3 class="text-lg font-bold text-carnatic-maroon border-b border-amber-200 pb-2 mb-4 flex items-center">
-                                <i class="fa-solid fa-user text-carnatic-gold mr-2"></i> 3. Customer Details
-                            </h3>
+<!-- ===== PAYMENT MODAL ===== -->
+<div id="payModal" class="backdrop" hidden>
+  <div class="modal" role="dialog" aria-modal="true" aria-labelledby="payTitle">
+    <div class="modal-head">
+      <div><p class="eyebrow">Secure checkout</p><h2 id="payTitle">Complete payment</h2></div>
+      <button type="button" class="x" id="payClose" aria-label="Close payment">×</button>
+    </div>
+    <div class="sim-banner">SIMULATION MODE — no real money moves. Never enter real card details here.</div>
+    <div class="modal-body">
+      <div class="order">
+        <div class="row"><span>Swaralayam notation × 1</span><span id="ordAmt">LKR 100.00</span></div>
+        <div class="row muted"><span id="ordDesc"></span><span></span></div>
+        <div class="row total"><span>Total</span><span id="ordTotal">LKR 100.00</span></div>
+      </div>
 
-                            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                                <div>
-                                    <label for="custName" class="block text-sm font-semibold text-carnatic-text mb-1">Full Name *</label>
-                                    <input type="text" id="custName" required placeholder="e.g., Ananya Sharma" class="w-full px-4 py-2 border border-gray-300 rounded-lg text-sm">
-                                </div>
-                                <div>
-                                    <label for="custEmail" class="block text-sm font-semibold text-carnatic-text mb-1">Email Address *</label>
-                                    <input type="email" id="custEmail" required placeholder="name@example.com" class="w-full px-4 py-2 border border-gray-300 rounded-lg text-sm">
-                                </div>
-                            </div>
-
-                            <div class="mt-4">
-                                <label for="custPhone" class="block text-sm font-semibold text-carnatic-text mb-1">WhatsApp / Phone Number *</label>
-                                <input type="tel" id="custPhone" required placeholder="+94 7X XXX XXXX" class="w-full px-4 py-2 border border-gray-300 rounded-lg text-sm">
-                            </div>
-
-                            <div class="mt-4">
-                                <label for="specialNotes" class="block text-sm font-semibold text-carnatic-text mb-1">Special Instructions / Timestamps</label>
-                                <textarea id="specialNotes" rows="2" placeholder="Mention specific timestamps or pitch (Shruti) preference if any..." class="w-full px-4 py-2 border border-gray-300 rounded-lg text-sm"></textarea>
-                            </div>
-                        </div>
-
-                        <button type="submit" class="w-full gold-gradient text-carnatic-deepMaroon font-bold py-3.5 rounded-lg shadow-md hover:opacity-90 transition text-center text-base">
-                            Proceed to Review Order
-                        </button>
-                    </form>
-                </div>
-
-                <!-- Live Summary & Payment -->
-                <div class="space-y-6">
-                    <div class="bg-white p-6 rounded-xl shadow-md border border-amber-200/80 sticky top-24">
-                        <h3 class="text-lg font-bold text-carnatic-maroon border-b border-amber-200 pb-2 mb-4 flex items-center">
-                            <i class="fa-solid fa-receipt text-carnatic-gold mr-2"></i> Order Summary
-                        </h3>
-
-                        <div class="space-y-3 text-sm">
-                            <div class="flex justify-between text-gray-600">
-                                <span>Selected Package:</span>
-                                <span id="summaryPackageName" class="font-semibold text-gray-800 text-right">Basic Notation</span>
-                            </div>
-                            <div class="flex justify-between text-gray-600">
-                                <span>Song:</span>
-                                <span id="summarySongTitle" class="font-semibold text-gray-800 truncate max-w-[150px] text-right">Not entered yet</span>
-                            </div>
-                            <div class="border-t border-gray-100 pt-3 flex justify-between items-center text-base">
-                                <span class="font-bold text-carnatic-text">Total Amount:</span>
-                                <span id="summaryTotal" class="font-bold text-carnatic-maroon text-xl">LKR 1,500</span>
-                            </div>
-                        </div>
-
-                        <!-- Payment Methods Section -->
-                        <div class="mt-6 pt-4 border-t border-amber-200">
-                            <h4 class="text-xs font-bold text-gray-500 uppercase tracking-wider mb-3">Accepted Payment Gateways (LKR)</h4>
-                            
-                            <div class="space-y-2">
-                                <!-- Direct Bank Transfer Modal Trigger / Details -->
-                                <div class="p-3 border border-amber-200 rounded-lg bg-amber-50/40 text-xs text-gray-700">
-                                    <p class="font-bold text-carnatic-maroon mb-1"><i class="fa-solid fa-building-columns mr-1"></i> Direct Local Bank Transfer</p>
-                                    <p>Commercial Bank, Sampath Bank, HNB (Sri Lanka)</p>
-                                    <p class="text-[11px] text-gray-500 mt-1">Account details provided after order review.</p>
-                                </div>
-
-                                <!-- Online Gateway Links -->
-                                <button type="button" onclick="handleMockPayment('Stripe / PayHere')" class="w-full bg-slate-800 hover:bg-slate-900 text-white font-medium py-2 px-3 rounded text-xs flex items-center justify-between transition">
-                                    <span><i class="fa-regular fa-credit-card mr-1"></i> Pay via Credit/Debit Card</span>
-                                    <i class="fa-solid fa-arrow-right text-carnatic-gold"></i>
-                                </button>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-
-            </div>
-        </section>
-
-        <!-- Order Ticket Confirmation Modal -->
-        <div id="ticketModal" class="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4">
-            <div class="bg-white rounded-xl shadow-2xl max-w-lg w-full p-6 space-y-4 border border-carnatic-gold">
-                <div class="text-center border-b border-amber-200 pb-4">
-                    <div class="w-12 h-12 bg-emerald-100 text-emerald-600 rounded-full flex items-center justify-center mx-auto mb-2 text-xl">
-                        <i class="fa-solid fa-check"></i>
-                    </div>
-                    <h3 class="text-xl font-bold text-carnatic-maroon">Order Ticket Generated!</h3>
-                    <p class="text-xs text-gray-500">Save your order reference ticket below.</p>
-                </div>
-
-                <div id="ticketContent" class="bg-amber-50 p-4 rounded-lg border border-amber-200 text-xs space-y-2 notation-font">
-                    <!-- Populated via Javascript -->
-                </div>
-
-                <div class="p-3 bg-amber-100/50 rounded-lg text-xs text-gray-700 space-y-1">
-                    <p class="font-bold text-carnatic-maroon">Payment Instructions (LKR):</p>
-                    <p><strong>Bank:</strong> Commercial Bank of Ceylon</p>
-                    <p><strong>Account Name:</strong> Carnatic Music Services</p>
-                    <p><strong>Account No:</strong> 8009XXXXXX</p>
-                    <p><strong>Branch:</strong> Colombo Main</p>
-                    <p class="text-[11px] text-gray-500 mt-1">Please send transfer slip/screenshot to WhatsApp with your Reference Number.</p>
-                </div>
-
-                <div class="flex gap-2">
-                    <button onclick="window.print()" class="w-1/2 border border-carnatic-maroon text-carnatic-maroon font-bold py-2 rounded text-xs hover:bg-amber-50">
-                        <i class="fa-solid fa-print mr-1"></i> Print / Save Ticket
-                    </button>
-                    <button onclick="closeTicketModal()" class="w-1/2 gold-gradient text-carnatic-deepMaroon font-bold py-2 rounded text-xs hover:opacity-90">
-                        Close
-                    </button>
-                </div>
-            </div>
+      <div id="payForm">
+        <div class="seg seg3" role="tablist" aria-label="Payment method">
+          <button type="button" role="tab" data-pm="card" aria-selected="true">💳 Card</button>
+          <button type="button" role="tab" data-pm="wallet" aria-selected="false">📱 Wallet</button>
+          <button type="button" role="tab" data-pm="bank" aria-selected="false">🏦 Bank</button>
         </div>
 
-        <!-- Pricing & FAQ Section -->
-        <section id="pricing" class="scroll-mt-24">
-            <div class="text-center mb-10">
-                <h2 class="text-2xl md:text-3xl font-bold text-carnatic-maroon">Pricing & Frequently Asked Questions</h2>
-                <p class="text-gray-600 mt-2">Transparent pricing in Sri Lankan Rupees (LKR)</p>
-            </div>
-
-            <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-12">
-                <div class="bg-white p-6 rounded-xl shadow-sm border border-amber-200 text-center">
-                    <h3 class="font-bold text-lg text-carnatic-maroon">Basic Notation</h3>
-                    <p class="text-2xl font-bold my-2 text-carnatic-goldDark">LKR 1,500</p>
-                    <p class="text-xs text-gray-500 mb-4">Ideal for students learning standard Krithis or Varnams.</p>
-                    <ul class="text-xs text-gray-600 space-y-2 text-left list-disc list-inside">
-                        <li>Standard Swara mapping</li>
-                        <li>Pallavi, Anupallavi, Charanam</li>
-                        <li>PDF delivery in 2-3 days</li>
-                    </ul>
-                </div>
-
-                <div class="bg-white p-6 rounded-xl shadow-md border-2 border-carnatic-gold text-center relative">
-                    <span class="absolute -top-3 left-1/2 -translate-x-1/2 bg-carnatic-maroon text-carnatic-gold text-[10px] font-bold px-3 py-0.5 rounded-full uppercase">Most Popular</span>
-                    <h3 class="font-bold text-lg text-carnatic-maroon">Detailed + Gamakas</h3>
-                    <p class="text-2xl font-bold my-2 text-carnatic-maroon">LKR 3,000</p>
-                    <p class="text-xs text-gray-500 mb-4">Recommended for performing artists and advanced students.</p>
-                    <ul class="text-xs text-gray-600 space-y-2 text-left list-disc list-inside">
-                        <li>Microtonal Gamaka markings</li>
-                        <li>Taala beats & sub-divisions</li>
-                        <li>PDF delivery in 1-2 days</li>
-                    </ul>
-                </div>
-
-                <div class="bg-white p-6 rounded-xl shadow-sm border border-amber-200 text-center">
-                    <h3 class="font-bold text-lg text-carnatic-maroon">Custom / Audio Guide</h3>
-                    <p class="text-2xl font-bold my-2 text-carnatic-goldDark">LKR 5,000</p>
-                    <p class="text-xs text-gray-500 mb-4">For rare compositions, fusion, or movie song classical notations.</p>
-                    <ul class="text-xs text-gray-600 space-y-2 text-left list-disc list-inside">
-                        <li>Full Notation + Gamakas</li>
-                        <li>Slow Audio Learning Track</li>
-                        <li>Priority delivery within 24 hours</li>
-                    </ul>
-                </div>
-            </div>
-
-            <!-- FAQ Accordion -->
-            <div class="max-w-3xl mx-auto space-y-4">
-                <details class="bg-white p-4 rounded-lg shadow-sm border border-amber-200 cursor-pointer">
-                    <summary class="font-semibold text-sm text-carnatic-maroon">How do I receive my completed notation?</summary>
-                    <p class="text-xs text-gray-600 mt-2 pl-4">Once your order and LKR payment are verified, we will send the high-resolution PDF notation directly to your registered Email</p>
-                </details>
-
-                <details class="bg-white p-4 rounded-lg shadow-sm border border-amber-200 cursor-pointer">
-                    <summary class="font-semibold text-sm text-carnatic-maroon">Can I upload non-classical or film songs in Carnatic format?</summary>
-                    <p class="text-xs text-gray-600 mt-2 pl-4">Yes! We transcribe light music, film songs, and devotional tracks into accurate Carnatic Swara format (Sa Re Ga Ma...).</p>
-                </details>
-            </div>
-        </section>
-
-        <!-- Contact Section -->
-        <section id="contact" class="scroll-mt-24">
-            <div class="bg-carnatic-maroon text-white p-8 rounded-xl shadow-lg border border-carnatic-gold text-center max-w-3xl mx-auto">
-                <h2 class="text-2xl font-bold text-carnatic-gold mb-2">Have Questions Before Ordering?</h2>
-                <p class="text-sm text-amber-100 mb-6">Reach out directly via discord for quick inquiries regarding custom songs or bank payments.</p>
-                <div class="flex justify-center gap-4 text-xs font-semibold">
-                    <a href="https://discord.com" target="_blank" class="bg-emerald-600 hover:bg-emerald-700 text-white px-6 py-2.5 rounded-lg flex items-center">
-                        <i class="fa-brands fa-whatsapp text-base mr-2"></i> Chat on Discord
-                    </a>
-                </div>
-            </div>
-        </section>
-
-    </main>
-
-    <!-- Footer -->
-    <footer class="bg-carnatic-deepMaroon text-amber-200/80 text-xs py-6 border-t border-carnatic-gold/40">
-        <div class="max-w-6xl mx-auto px-4 text-center space-y-2">
-            <p>&copy; Carnatic Music Notation Services. All prices listed in Sri Lankan Rupees (LKR).</p>
-            <p class="text-[11px] text-amber-200/50">Designed for Classical Carnatic Musicians, Students, and Enthusiasts.</p>
+        <div class="mpanel" data-pmp="card">
+          <div class="field"><label for="cardName">Name on card</label><input id="cardName" autocomplete="off" placeholder="A. Kumar"></div>
+          <div class="field"><label for="cardNumber">Card number</label><input id="cardNumber" inputmode="numeric" autocomplete="off" placeholder="0000 0000 0000 0000" maxlength="23"></div>
+          <div class="grid2">
+            <div class="field"><label for="cardExp">Expiry</label><input id="cardExp" inputmode="numeric" autocomplete="off" placeholder="MM/YY" maxlength="5"></div>
+            <div class="field"><label for="cardCvv">CVV</label><input id="cardCvv" inputmode="numeric" autocomplete="off" placeholder="123" maxlength="4"></div>
+          </div>
+          <div class="field"><span class="hint">Demo cards: <b>4111 1111 1111 1111</b> approves · <b>4000 0000 0000 0002</b> is declined.
+            <button type="button" class="link-btn" style="color:var(--maroon)" id="fillTest">Fill test card</button></span></div>
         </div>
-    </footer>
 
-    <!-- JavaScript Interactivity -->
-    <script>
-        // Mobile Navigation Toggle
-        const menuBtn = document.getElementById('menuBtn');
-        const navMenu = document.getElementById('navMenu');
+        <div class="mpanel" data-pmp="wallet" hidden>
+          <div class="field"><label for="walletProvider">Wallet</label>
+            <select id="walletProvider"><option>eZ Cash</option><option>mCash</option><option>Genie</option></select></div>
+          <div class="field"><label for="walletMobile">Mobile number</label><input id="walletMobile" inputmode="tel" autocomplete="off" placeholder="07X XXX XXXX" maxlength="13"></div>
+          <button type="button" class="btn ghost" id="sendOtp">Send OTP</button>
+          <div class="field" id="otpWrap" hidden><label for="walletOtp">One-time password</label><input id="walletOtp" inputmode="numeric" autocomplete="off" maxlength="6" placeholder="6-digit OTP"><span class="hint">Demo OTP is <b>123456</b>.</span></div>
+        </div>
 
-        menuBtn.addEventListener('click', () => {
-            navMenu.classList.toggle('hidden');
-        });
+        <div class="mpanel" data-pmp="bank" hidden>
+          <div class="field"><label for="bankSel">Select your bank</label>
+            <select id="bankSel"><option>Bank of Ceylon</option><option>People's Bank</option><option>Commercial Bank</option><option>Sampath Bank</option><option>Hatton National Bank</option><option>Seylan Bank</option><option>NDB Bank</option></select></div>
+          <span class="hint" style="font-size:.82rem;color:var(--muted)">You would normally be redirected to your bank's net-banking page to approve the payment.</span>
+        </div>
 
-        // Live Order Form State
-        const form = document.getElementById('notationOrderForm');
-        const songTitleInput = document.getElementById('songTitle');
-        const tierRadios = document.getElementsByName('tier');
-        
-        const summaryPackageName = document.getElementById('summaryPackageName');
-        const summarySongTitle = document.getElementById('summarySongTitle');
-        const summaryTotal = document.getElementById('summaryTotal');
+        <button type="button" class="btn primary block" id="payNow">Pay LKR 100.00</button>
+      </div>
 
-        function updateSummary() {
-            // Update Song Title Summary
-            const titleVal = songTitleInput.value.trim();
-            summarySongTitle.textContent = titleVal ? titleVal : "Not entered yet";
+      <div id="payProcessing" class="pay-state" hidden>
+        <div class="spinner" aria-hidden="true"></div>
+        <h3>Processing payment</h3>
+        <p id="payStatus" aria-live="polite" style="margin:0;color:var(--muted)">Initialising…</p>
+        <p style="font-size:.8rem;color:var(--muted)">Please don't close this window.</p>
+      </div>
 
-            // Update Selected Tier
-            let selectedPrice = 1500;
-            let selectedName = "Basic Notation";
+      <div id="paySuccess" class="pay-state" hidden>
+        <div class="tick" aria-hidden="true">✓</div>
+        <h3>Payment confirmed</h3>
+        <p style="margin:0;color:var(--muted)">Starting your transcription…</p>
+        <div class="receipt" id="receiptBox"></div>
+        <button type="button" class="btn primary" id="payContinue" style="margin-top:16px">Continue</button>
+      </div>
 
-            tierRadios.forEach(radio => {
-                if (radio.checked) {
-                    selectedPrice = parseInt(radio.value);
-                    selectedName = radio.getAttribute('data-name');
-                }
-            });
+      <div id="payError" class="pay-state" hidden>
+        <div class="tick bad" aria-hidden="true">!</div>
+        <h3>Payment failed</h3>
+        <p id="payErrMsg" style="margin:0 0 14px;color:var(--muted)"></p>
+        <button type="button" class="btn dark" id="payRetry">Try again</button>
+      </div>
+    </div>
+  </div>
+</div>
 
-            summaryPackageName.textContent = selectedName;
-            summaryTotal.textContent = `LKR ${selectedPrice.toLocaleString()}`;
-        }
+<!-- ===== SETTINGS DRAWER ===== -->
+<div id="scrim" class="scrim"></div>
+<aside id="drawer" class="drawer" role="dialog" aria-modal="true" aria-labelledby="drawerTitle" aria-hidden="true">
+  <div class="modal-head">
+    <div><p class="eyebrow">Configuration</p><h2 id="drawerTitle">Settings</h2></div>
+    <button type="button" class="x" id="closeDrawer" aria-label="Close settings">×</button>
+  </div>
+  <div class="body">
+    <div class="field">
+      <label for="endpointInput">Cloudflare Worker proxy endpoint</label>
+      <input id="endpointInput" type="url" placeholder="https://swaralayam-proxy.YOUR-SUBDOMAIN.workers.dev" autocomplete="off" inputmode="url" spellcheck="false">
+      <span class="hint">Paste the Worker URL. <code>/api/transcribe</code> is added automatically. Saved only in this browser.</span>
+    </div>
+    <div style="display:flex;gap:8px;flex-wrap:wrap">
+      <button type="button" class="btn dark" id="saveEndpoint">Save</button>
+      <button type="button" class="btn ghost" id="testEndpoint">Test connection</button>
+      <button type="button" class="btn ghost" id="clearEndpoint">Clear</button>
+    </div>
+    <div id="testResult" class="test-out" hidden></div>
+    <div>
+      <p class="eyebrow" style="color:var(--gold-deep);margin-bottom:6px">Why a proxy?</p>
+      <p style="margin:0;font-size:.88rem;color:#4a3b3d">GitHub Pages is public, so a Gemini key placed in this page would be visible to everyone. Requests go to your Worker, which adds the secret key server-side and forwards them to Google.</p>
+    </div>
+    <ol>
+      <li>Create a Worker and paste <code>worker.js</code>.</li>
+      <li>Add the secret <code>GEMINI_API_KEY</code>.</li>
+      <li>Set <code>ALLOWED_ORIGINS</code> to your <code>https://&lt;user&gt;.github.io</code>.</li>
+      <li>Paste the Worker URL above and press Test connection.</li>
+    </ol>
+  </div>
+</aside>
 
-        // Event Listeners for Dynamic Calculation
-        songTitleInput.addEventListener('input', updateSummary);
-        tierRadios.forEach(radio => radio.addEventListener('change', updateSummary));
+<div id="toast" class="toast" role="status" aria-live="polite"></div>
 
-        // Form Submission - Order Reference Ticket Modal
-        form.addEventListener('submit', (e) => {
-            e.preventDefault();
+<script>
+(() => {
+'use strict';
 
-            const refNo = "CM-LKR-" + Math.floor(100000 + Math.random() * 900000);
-            const songTitle = songTitleInput.value;
-            const custName = document.getElementById('custName').value;
-            const custEmail = document.getElementById('custEmail').value;
-            const custPhone = document.getElementById('custPhone').value;
-            const songLink = document.getElementById('songLink').value || "None provided";
-            
-            let selectedPrice = 1500;
-            let selectedName = "Basic Notation";
-            tierRadios.forEach(radio => {
-                if (radio.checked) {
-                    selectedPrice = parseInt(radio.value);
-                    selectedName = radio.getAttribute('data-name');
-                }
-            });
+/* =====================================================================
+   CONFIG — the only values you may want to edit
+   ===================================================================== */
+const CONFIG = {
+  DEFAULT_WORKER_URL: '',          // PLACEHOLDER: e.g. 'https://swaralayam-proxy.YOUR-SUBDOMAIN.workers.dev' (users can also set it in Settings)
+  PRICE_LKR: 100,
+  PAYMENT_MODE: 'simulation',      // 'simulation' | 'live' (live requires wiring liveCharge() below)
+  MAX_UPLOAD_MB: 14,               // base64 inflates ~33%; Gemini inline request limit is ~20 MB
+  REQUEST_TIMEOUT_MS: 180000,
+  KEY_ENDPOINT: 'swaralayam.endpoint',
+  KEY_CREDIT: 'swaralayam.credit'
+};
 
-            const ticketContent = document.getElementById('ticketContent');
-            ticketContent.innerHTML = `
-                <p class="font-bold text-carnatic-maroon">REF NO: ${refNo}</p>
-                <p><strong>Customer:</strong> ${custName}</p>
-                <p><strong>Contact:</strong> ${custPhone} (${custEmail})</p>
-                <p><strong>Song:</strong> ${songTitle}</p>
-                <p><strong>Song Link:</strong> ${songLink}</p>
-                <p><strong>Package:</strong> ${selectedName}</p>
-                <p class="text-sm font-bold text-carnatic-maroon border-t border-amber-200 pt-1 mt-1">Total Due: LKR ${selectedPrice.toLocaleString()}</p>
-            `;
+/* =====================================================================
+   Static musical data
+   ===================================================================== */
+const RAGAS = ['Auto-Detect','Mayamalavagowla','Shankarabharanam','Kalyani','Kharaharapriya','Hanumatodi','Bhairavi','Kambhoji','Mohanam','Hamsadhwani','Sri','Madhyamavati','Charukesi','Natabhairavi','Abhogi','Keeravani'];
+const TALAMS = [
+  {id:'auto',         label:'Auto-Detect',            hint:'identify the talam from the recording'},
+  {id:'Adi',          label:'Adi (Chatusra Triputa)', hint:'8 aksharas grouped 4 | 2 | 2'},
+  {id:'Rupakam',      label:'Rupakam',                hint:'6 aksharas grouped 2 | 4'},
+  {id:'Misra Chapu',  label:'Misra Chapu',            hint:'7 aksharas grouped 3 | 2 | 2'},
+  {id:'Khanda Chapu', label:'Khanda Chapu',           hint:'5 aksharas grouped 2 | 3'}
+];
+const NOTE_NAMES = ['C','C#','D','D#','E','F','F#','G','G#','A','A#','B'];
+const KATTAI = ['1 Kattai','1.5 Kattai','2 Kattai','2.5 Kattai','3 Kattai','4 Kattai','4.5 Kattai','5 Kattai','5.5 Kattai','6 Kattai','6.5 Kattai','7 Kattai'];
+const sruthiLabel = i => `${KATTAI[i]} / ${NOTE_NAMES[i]}`;
 
-            document.getElementById('ticketModal').classList.remove('hidden');
-        });
+const SWARA_SEMI = {Sa:0,Ri1:1,Ri2:2,Ri3:3,Ga1:2,Ga2:3,Ga3:4,Ma1:5,Ma2:6,Pa:7,Dha1:8,Dha2:9,Dha3:10,Ni1:9,Ni2:10,Ni3:11};
+const DEFAULT_VAR = {Sa:'',Ri:'2',Ga:'3',Ma:'1',Pa:'',Dha:'2',Ni:'3'};
+const LETTER_MAP = {S:'Sa',R:'Ri',G:'Ga',M:'Ma',P:'Pa',D:'Dha',N:'Ni',SA:'Sa',RI:'Ri',GA:'Ga',MA:'Ma',PA:'Pa',DHA:'Dha',DA:'Dha',NI:'Ni'};
 
-        function closeTicketModal() {
-            document.getElementById('ticketModal').classList.add('hidden');
-        }
+/* =====================================================================
+   Helpers
+   ===================================================================== */
+const $  = (s, r = document) => r.querySelector(s);
+const $$ = (s, r = document) => [...r.querySelectorAll(s)];
+const el = (tag, cls, text) => { const n = document.createElement(tag); if (cls) n.className = cls; if (text != null) n.textContent = text; return n; };
+const sleep = ms => new Promise(r => setTimeout(r, ms));
+const fmtLKR = n => `LKR ${Number(n).toFixed(2)}`;
+const store = {
+  get(k, s = localStorage){ try { return s.getItem(k); } catch { return null; } },
+  set(k, v, s = localStorage){ try { s.setItem(k, v); } catch {} },
+  del(k, s = localStorage){ try { s.removeItem(k); } catch {} }
+};
 
-        function handleMockPayment(gatewayName) {
-            const songTitle = songTitleInput.value.trim();
-            if (!songTitle) {
-                alert("Please fill in the Song Title before selecting a payment gateway.");
-                songTitleInput.focus();
-                return;
-            }
-            alert(`Redirecting to ${gatewayName} gateway in Sri Lankan Rupees (LKR)...`);
-        }
-    </script>
+let toastTimer = 0;
+function toast(msg, bad = false){
+  const t = $('#toast'); t.textContent = msg; t.classList.toggle('bad', bad); t.classList.add('show');
+  clearTimeout(toastTimer); toastTimer = setTimeout(() => t.classList.remove('show'), 4800);
+}
+
+/* Minimal focus trap + Escape for dialogs */
+let activeDialog = null, lastFocus = null;
+function openDialog(node, focusSel){
+  lastFocus = document.activeElement; activeDialog = node;
+  setTimeout(() => { const f = focusSel ? $(focusSel, node) : $('button,input,select', node); if (f) f.focus(); }, 60);
+}
+function closeDialog(){ activeDialog = null; if (lastFocus && lastFocus.focus) lastFocus.focus(); }
+document.addEventListener('keydown', e => {
+  if (!activeDialog) return;
+  if (e.key === 'Escape') { activeDialog.dispatchEvent(new CustomEvent('dialog-escape')); return; }
+  if (e.key !== 'Tab') return;
+  const f = $$('button:not([disabled]),input:not([disabled]),select,[tabindex="0"]', activeDialog).filter(n => n.offsetParent !== null);
+  if (!f.length) return;
+  const first = f[0], last = f[f.length - 1];
+  if (e.shiftKey && document.activeElement === first) { e.preventDefault(); last.focus(); }
+  else if (!e.shiftKey && document.activeElement === last) { e.preventDefault(); first.focus(); }
+});
+
+/* =====================================================================
+   State
+   ===================================================================== */
+function loadCredit(){
+  try { const c = JSON.parse(store.get(CONFIG.KEY_CREDIT, sessionStorage) || 'null'); return c && typeof c.receipt === 'string' ? c : null; } catch { return null; }
+}
+const state = {
+  mode: 'file', file: null, objectUrl: null,
+  result: null, sruthiBase: 0, sruthiIdx: 0, showWestern: false,
+  credit: loadCredit(), busy: false, abort: null
+};
+
+/* =====================================================================
+   Endpoint (Cloudflare Worker) handling
+   ===================================================================== */
+function normalizeEndpoint(raw){
+  let v = (raw || '').trim(); if (!v) return '';
+  if (!/^https?:\/\//i.test(v)) v = 'https://' + v;
+  let u; try { u = new URL(v); } catch { return ''; }
+  if (u.protocol === 'http:' && !/^(localhost|127\.0\.0\.1)$/.test(u.hostname)) return '';
+  if (u.pathname === '/' || u.pathname === '') u.pathname = '/api/transcribe';
+  u.search = ''; u.hash = '';
+  return u.href.replace(/\/+$/, '');
+}
+const getEndpoint = () => normalizeEndpoint(store.get(CONFIG.KEY_ENDPOINT) || CONFIG.DEFAULT_WORKER_URL);
+const healthUrl = ep => ep.replace(/\/api\/transcribe$/, '') + '/api/health';
+
+/* =====================================================================
+   Populate selects & UI wiring
+   ===================================================================== */
+function fillSelects(){
+  $('#ragaSel').append(...RAGAS.map(r => new Option(r, r === 'Auto-Detect' ? 'auto' : r)));
+  $('#talamSel').append(...TALAMS.map(t => new Option(t.label, t.id)));
+  const s = $('#sruthiSel');
+  s.append(new Option('Auto-Detect (estimate)', 'auto'));
+  KATTAI.forEach((_, i) => s.append(new Option(sruthiLabel(i), String(i))));
+  $('#maxMb').textContent = CONFIG.MAX_UPLOAD_MB;
+  $('#priceBig').textContent = `LKR ${CONFIG.PRICE_LKR}`;
+}
+
+function refreshUI(){
+  const ep = getEndpoint();
+  $('#setupBanner').hidden = !!ep;
+  const c = state.credit;
+  $('#creditPill').hidden = !c;
+  if (c) $('#creditReceipt').textContent = `Receipt ${c.receipt}`;
+  const b = $('#payBtn');
+  b.disabled = state.busy;
+  b.textContent = c ? '🎼 Transcribe now (paid)' : `Pay LKR ${CONFIG.PRICE_LKR} & Transcribe`;
+}
+function showError(msg){ const b = $('#errorBox'); b.textContent = msg; b.hidden = false; }
+function hideError(){ $('#errorBox').hidden = true; }
+
+/* ---- input mode tabs ---- */
+$$('.seg [data-mode]').forEach(btn => btn.addEventListener('click', () => {
+  state.mode = btn.dataset.mode; hideError();
+  $$('.seg [data-mode]').forEach(b => b.setAttribute('aria-selected', String(b === btn)));
+  $('#panelFile').hidden = state.mode !== 'file';
+  $('#panelLink').hidden = state.mode !== 'link';
+}));
+
+/* ---- file handling ---- */
+const MIME_BY_EXT = {mp3:'audio/mp3',wav:'audio/wav',aac:'audio/aac',ogg:'audio/ogg',flac:'audio/flac',aiff:'audio/aiff',aif:'audio/aiff',m4a:'audio/mp4'};
+function guessMime(name, type){
+  const ext = (name.split('.').pop() || '').toLowerCase();
+  if (MIME_BY_EXT[ext]) return MIME_BY_EXT[ext];
+  if (type === 'audio/mpeg') return 'audio/mp3';
+  if (type === 'audio/x-wav' || type === 'audio/wave') return 'audio/wav';
+  return type && type.startsWith('audio/') ? type : '';
+}
+const fmtBytes = b => b > 1048576 ? (b / 1048576).toFixed(1) + ' MB' : Math.max(1, Math.round(b / 1024)) + ' KB';
+
+function setFile(file){
+  hideError();
+  if (!file) return;
+  const mime = guessMime(file.name, file.type);
+  if (!mime) { showError('That does not look like an audio file. Please choose MP3, WAV, FLAC, AAC, OGG or M4A.'); return; }
+  if (file.size > CONFIG.MAX_UPLOAD_MB * 1048576) { showError(`File is ${fmtBytes(file.size)}. The limit is ${CONFIG.MAX_UPLOAD_MB} MB — trim the clip or export a smaller MP3.`); return; }
+  clearFile();
+  state.file = file; state.objectUrl = URL.createObjectURL(file);
+  $('#fileName').textContent = file.name;
+  $('#fileMeta').textContent = `${fmtBytes(file.size)} · ${mime}`;
+  $('#filePreview').src = state.objectUrl;
+  $('#fileCard').hidden = false; $('#dropzone').hidden = true;
+}
+function clearFile(){
+  if (state.objectUrl) URL.revokeObjectURL(state.objectUrl);
+  state.file = null; state.objectUrl = null;
+  $('#filePreview').removeAttribute('src'); $('#fileInput').value = '';
+  $('#fileCard').hidden = true; $('#dropzone').hidden = false;
+}
+const dz = $('#dropzone');
+dz.addEventListener('click', () => $('#fileInput').click());
+dz.addEventListener('keydown', e => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); $('#fileInput').click(); } });
+['dragenter','dragover'].forEach(ev => dz.addEventListener(ev, e => { e.preventDefault(); dz.classList.add('over'); }));
+['dragleave','drop'].forEach(ev => dz.addEventListener(ev, e => { e.preventDefault(); dz.classList.remove('over'); }));
+dz.addEventListener('drop', e => setFile(e.dataTransfer.files && e.dataTransfer.files[0]));
+$('#fileInput').addEventListener('change', e => setFile(e.target.files[0]));
+$('#fileRemove').addEventListener('click', clearFile);
+
+/* ---- settings drawer ---- */
+const drawer = $('#drawer'), scrim = $('#scrim');
+function openDrawer(){
+  $('#endpointInput').value = store.get(CONFIG.KEY_ENDPOINT) || CONFIG.DEFAULT_WORKER_URL || '';
+  $('#testResult').hidden = true;
+  drawer.classList.add('open'); scrim.classList.add('show'); drawer.setAttribute('aria-hidden', 'false');
+  openDialog(drawer, '#endpointInput');
+}
+function closeDrawer(){ drawer.classList.remove('open'); scrim.classList.remove('show'); drawer.setAttribute('aria-hidden', 'true'); closeDialog(); }
+$('#openSettings').addEventListener('click', openDrawer);
+$('#bannerSettings').addEventListener('click', openDrawer);
+$('#closeDrawer').addEventListener('click', closeDrawer);
+scrim.addEventListener('click', closeDrawer);
+drawer.addEventListener('dialog-escape', closeDrawer);
+$('#saveEndpoint').addEventListener('click', () => {
+  const raw = $('#endpointInput').value;
+  const n = normalizeEndpoint(raw);
+  if (!n) { toast('Enter a valid https:// Worker URL.', true); return; }
+  store.set(CONFIG.KEY_ENDPOINT, n); $('#endpointInput').value = n; refreshUI(); toast('Endpoint saved.');
+});
+$('#clearEndpoint').addEventListener('click', () => { store.del(CONFIG.KEY_ENDPOINT); $('#endpointInput').value = ''; refreshUI(); toast('Endpoint cleared.'); });
+$('#testEndpoint').addEventListener('click', async () => {
+  const out = $('#testResult'); const ep = normalizeEndpoint($('#endpointInput').value);
+  out.hidden = false; out.className = 'test-out';
+  if (!ep) { out.classList.add('bad'); out.textContent = 'Enter a valid Worker URL first.'; return; }
+  out.textContent = 'Contacting Worker…';
+  const ac = new AbortController(); const t = setTimeout(() => ac.abort(), 9000);
+  try {
+    const r = await fetch(healthUrl(ep), { signal: ac.signal });
+    const j = await r.json();
+    if (!r.ok) throw new Error(j?.error?.message || `HTTP ${r.status}`);
+    if (j.keyConfigured) { out.classList.add('ok'); out.textContent = `✓ Proxy reachable · API key configured · model ${j.model}`; }
+    else { out.classList.add('bad'); out.textContent = 'Proxy reachable, but the GEMINI_API_KEY secret is missing on the Worker.'; }
+  } catch (err) {
+    out.classList.add('bad');
+    out.textContent = err.name === 'AbortError' ? 'Timed out. Check the URL and that the Worker is deployed.' : `Could not connect: ${err.message}. If the Worker is deployed, make sure ALLOWED_ORIGINS includes this site's origin.`;
+  } finally { clearTimeout(t); }
+});
+
+/* =====================================================================
+   Payment (simulated gateway)
+   ===================================================================== */
+const payModal = $('#payModal');
+let payMethod = 'card', payBusy = false, otpSent = false, autoTimer = 0;
+
+function showPayView(id){ ['payForm','payProcessing','paySuccess','payError'].forEach(v => { $('#' + v).hidden = v !== id; }); }
+function openPayment(){
+  const p = readParams();
+  $('#ordAmt').textContent = $('#ordTotal').textContent = fmtLKR(CONFIG.PRICE_LKR);
+  $('#ordDesc').textContent = `${p.raga === 'auto' ? 'Raga auto-detect' : p.raga} · ${p.talam === 'auto' ? 'Talam auto-detect' : p.talam}`;
+  $('#payNow').textContent = `Pay ${fmtLKR(CONFIG.PRICE_LKR)}`;
+  showPayView('payForm'); payModal.hidden = false; openDialog(payModal, '#cardName');
+}
+function closePayment(){ if (payBusy) return; clearTimeout(autoTimer); payModal.hidden = true; closeDialog(); }
+$('#payClose').addEventListener('click', closePayment);
+payModal.addEventListener('mousedown', e => { if (e.target === payModal) closePayment(); });
+payModal.addEventListener('dialog-escape', closePayment);
+
+$$('[data-pm]').forEach(b => b.addEventListener('click', () => {
+  payMethod = b.dataset.pm;
+  $$('[data-pm]').forEach(x => x.setAttribute('aria-selected', String(x === b)));
+  $$('[data-pmp]').forEach(p => { p.hidden = p.dataset.pmp !== payMethod; });
+}));
+
+/* input masks */
+$('#cardNumber').addEventListener('input', e => { e.target.value = e.target.value.replace(/\D/g, '').slice(0, 19).replace(/(.{4})/g, '$1 ').trim(); });
+$('#cardExp').addEventListener('input', e => { let v = e.target.value.replace(/\D/g, '').slice(0, 4); if (v.length > 2) v = v.slice(0, 2) + '/' + v.slice(2); e.target.value = v; });
+$('#cardCvv').addEventListener('input', e => { e.target.value = e.target.value.replace(/\D/g, '').slice(0, 4); });
+$('#walletOtp').addEventListener('input', e => { e.target.value = e.target.value.replace(/\D/g, '').slice(0, 6); });
+$('#fillTest').addEventListener('click', () => {
+  $('#cardName').value = 'TEST USER'; $('#cardNumber').value = '4111 1111 1111 1111'; $('#cardExp').value = '12/30'; $('#cardCvv').value = '123';
+});
+$('#sendOtp').addEventListener('click', () => {
+  if (!/^0?7\d{8}$/.test($('#walletMobile').value.replace(/[\s-]/g, ''))) { toast('Enter a valid Sri Lankan mobile number (07X XXX XXXX).', true); return; }
+  otpSent = true; $('#otpWrap').hidden = false; $('#walletOtp').focus();
+  toast(`Demo OTP sent to ${$('#walletMobile').value}: 123456`);
+});
+
+function luhn(num){ let s = 0, alt = false; for (let i = num.length - 1; i >= 0; i--) { let d = +num[i]; if (alt) { d *= 2; if (d > 9) d -= 9; } s += d; alt = !alt; } return s % 10 === 0; }
+function validatePayment(){
+  if (payMethod === 'card') {
+    const n = $('#cardNumber').value.replace(/\s/g, '');
+    if (!$('#cardName').value.trim()) return 'Enter the name on the card.';
+    if (n.length < 13 || !luhn(n)) return 'Card number is not valid.';
+    const m = /^(\d{2})\/(\d{2})$/.exec($('#cardExp').value);
+    if (!m || +m[1] < 1 || +m[1] > 12) return 'Expiry must be MM/YY.';
+    const now = new Date(), yy = now.getFullYear() % 100, mm = now.getMonth() + 1;
+    if (+m[2] < yy || (+m[2] === yy && +m[1] < mm)) return 'This card has expired.';
+    if (!/^\d{3,4}$/.test($('#cardCvv').value)) return 'Enter the 3 or 4 digit CVV.';
+    return { method: 'card', number: n, label: 'Card •••• ' + n.slice(-4) };
+  }
+  if (payMethod === 'wallet') {
+    if (!/^0?7\d{8}$/.test($('#walletMobile').value.replace(/[\s-]/g, ''))) return 'Enter a valid Sri Lankan mobile number.';
+    if (!otpSent) return 'Press “Send OTP” first.';
+    if ($('#walletOtp').value !== '123456') return 'Incorrect OTP (demo OTP is 123456).';
+    const p = $('#walletProvider').value; return { method: 'wallet', provider: p, label: p };
+  }
+  const bank = $('#bankSel').value; return { method: 'bank', bank, label: bank + ' NetBank' };
+}
+
+/* The simulated gateway. Replace with liveCharge() for a real PayHere / WebxPay integration. */
+async function simulateGateway(d, onStatus){
+  onStatus('Initialising secure session…'); await sleep(700);
+  if (d.method === 'card') {
+    onStatus('Verifying card details…'); await sleep(800);
+    onStatus('3-D Secure authentication…'); await sleep(1300);
+    if (d.number.endsWith('0002')) throw new Error('Card declined by issuer (code 05). Please use another card.');
+  } else if (d.method === 'wallet') {
+    onStatus(`Sending approval request to ${d.provider}…`); await sleep(900);
+    onStatus('Waiting for OTP confirmation…'); await sleep(1000);
+  } else {
+    onStatus(`Redirecting to ${d.bank} net-banking…`); await sleep(1000);
+    onStatus('Awaiting bank approval…'); await sleep(1300);
+  }
+  onStatus(`Authorising ${fmtLKR(CONFIG.PRICE_LKR)}…`); await sleep(1000);
+  onStatus('Confirming with merchant…'); await sleep(700);
+  const rand = n => Array.from(crypto.getRandomValues(new Uint8Array(n)), b => (b % 10)).join('');
+  return { receipt: 'SWL-' + rand(8), authCode: rand(6), method: d.label, amount: CONFIG.PRICE_LKR, paidAt: new Date().toISOString(), mode: 'simulation' };
+}
+/* PLACEHOLDER: wire this to PayHere / WebxPay. It must return the same shape as simulateGateway() and
+   should only resolve after your SERVER has verified the payment (notify_url webhook). */
+async function liveCharge(/* details, onStatus */){ throw new Error('Live payment gateway is not configured yet (see CONFIG.PAYMENT_MODE).'); }
+
+$('#payNow').addEventListener('click', async () => {
+  if (payBusy) return;
+  const d = validatePayment();
+  if (typeof d === 'string') { toast(d, true); return; }
+  payBusy = true; showPayView('payProcessing');
+  const setStatus = t => { $('#payStatus').textContent = t; };
+  try {
+    const receipt = CONFIG.PAYMENT_MODE === 'live' ? await liveCharge(d, setStatus) : await simulateGateway(d, setStatus);
+    state.credit = receipt; store.set(CONFIG.KEY_CREDIT, JSON.stringify(receipt), sessionStorage);
+    const box = $('#receiptBox'); box.replaceChildren();
+    [['Receipt', receipt.receipt], ['Auth code', receipt.authCode], ['Method', receipt.method], ['Amount', fmtLKR(receipt.amount)], ['Time', new Date(receipt.paidAt).toLocaleString()]]
+      .forEach(([k, v]) => { const r = el('div'); r.append(el('span', null, k), el('b', null, v)); box.append(r); });
+    showPayView('paySuccess'); refreshUI();
+    autoTimer = setTimeout(proceedAfterPayment, 2600);
+  } catch (err) {
+    $('#payErrMsg').textContent = err.message || 'The gateway reported an error.'; showPayView('payError');
+  } finally { payBusy = false; }
+});
+$('#payRetry').addEventListener('click', () => showPayView('payForm'));
+function proceedAfterPayment(){ clearTimeout(autoTimer); if (payModal.hidden) return; payModal.hidden = true; closeDialog(); startTranscription(); }
+$('#payContinue').addEventListener('click', proceedAfterPayment);
+
+/* =====================================================================
+   Veena / Tampura string animation
+   ===================================================================== */
+const Anim = (() => {
+  const cv = $('#waveCanvas'), ctx = cv.getContext('2d');
+  const N = 6, order = [1,3,2,0,4,2,3,5];
+  const S = Array.from({ length: N }, (_, i) => ({ amp: 0, age: 9, f: 1.7 + i * 0.5, lw: 3.4 - i * 0.42 }));
+  const calm = matchMedia('(prefers-reduced-motion: reduce)').matches ? 0.5 : 1;
+  let W = 0, H = 0, raf = 0, last = 0, seq = 0, seqI = 0;
+  function size(){
+    const dpr = Math.min(window.devicePixelRatio || 1, 2), r = cv.getBoundingClientRect();
+    W = r.width; H = r.height; cv.width = W * dpr; cv.height = H * dpr; ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+  }
+  function pluck(i){ S[i].amp = 1; S[i].age = 0; }
+  function draw(now){
+    const dt = Math.min(.05, (now - last) / 1000 || .016); last = now;
+    ctx.clearRect(0, 0, W, H);
+    const g = ctx.createRadialGradient(W / 2, H / 2, 8, W / 2, H / 2, W / 2);
+    g.addColorStop(0, 'rgba(212,175,55,.16)'); g.addColorStop(1, 'rgba(212,175,55,0)');
+    ctx.fillStyle = g; ctx.fillRect(0, 0, W, H);
+    const px = 22, steps = Math.max(40, Math.floor((W - 2 * px) / 5));
+    for (let i = 0; i < N; i++) {
+      const s = S[i]; s.age += dt;
+      const a = s.amp * Math.exp(-s.age * 1.1) * calm;
+      const y0 = H * (.15 + .7 * i / (N - 1)), maxA = H * .08 * (1 - i * .06), w = 2 * Math.PI * s.f * s.age;
+      ctx.beginPath();
+      for (let k = 0; k <= steps; k++) {
+        const u = k / steps, x = px + u * (W - 2 * px);
+        const y = y0 + a * maxA * (Math.sin(Math.PI * u) * Math.cos(w) + .35 * Math.sin(2 * Math.PI * u) * Math.cos(2 * w + 1));
+        k ? ctx.lineTo(x, y) : ctx.moveTo(x, y);
+      }
+      const hot = Math.min(1, a * 1.3);
+      ctx.lineWidth = Math.max(1.1, s.lw);
+      ctx.strokeStyle = `rgba(${212 + Math.round(30 * hot)},${175 + Math.round(50 * hot)},${55 + Math.round(90 * hot)},${.5 + .5 * hot})`;
+      ctx.shadowColor = `rgba(212,175,55,${.2 + .65 * hot})`; ctx.shadowBlur = 5 + 20 * hot;
+      ctx.stroke();
+    }
+    ctx.shadowBlur = 0; ctx.fillStyle = 'rgba(236,217,138,.9)';
+    for (let i = 0; i < N; i++) { const y0 = H * (.15 + .7 * i / (N - 1)); [px, W - px].forEach(x => { ctx.beginPath(); ctx.arc(x, y0, 3, 0, 6.283); ctx.fill(); }); }
+    raf = requestAnimationFrame(draw);
+  }
+  return {
+    start(){ size(); window.addEventListener('resize', size); last = performance.now(); seqI = 0; pluck(order[0]);
+      seq = setInterval(() => { seqI = (seqI + 1) % order.length; pluck(order[seqI]); }, 640); raf = requestAnimationFrame(draw); },
+    stop(){ cancelAnimationFrame(raf); clearInterval(seq); window.removeEventListener('resize', size); }
+  };
+})();
+
+/* =====================================================================
+   Processing screen
+   ===================================================================== */
+const STEP_MSGS = ['Listening closely to the recording…', 'Mapping pitch contours to swarasthanas…', 'Arranging phrases into avartanams and sections…', 'Setting the notation in type…'];
+let stepTimers = [], elapsedTimer = 0, tStart = 0;
+function setStep(i){
+  $$('#stepList li').forEach((li, k) => {
+    li.classList.toggle('done', k < i); li.classList.toggle('active', k === i);
+    li.querySelector('.dot').textContent = k < i ? '✓' : String(k + 1);
+  });
+  $('#procBar').style.width = Math.round((i / 4) * 100) + '%';
+  $('#procMsg').textContent = STEP_MSGS[i] || '';
+}
+function showProcessing(){
+  $('#processing').hidden = false; document.body.style.overflow = 'hidden';
+  tStart = Date.now(); $('#elapsed').textContent = '0s';
+  elapsedTimer = setInterval(() => { $('#elapsed').textContent = Math.round((Date.now() - tStart) / 1000) + 's'; }, 1000);
+  Anim.start(); setStep(0);
+}
+function hideProcessing(){
+  stepTimers.forEach(clearTimeout); stepTimers = []; clearInterval(elapsedTimer); Anim.stop();
+  $('#processing').hidden = true; document.body.style.overflow = '';
+}
+$('#cancelBtn').addEventListener('click', () => { if (state.abort) state.abort.abort('user'); });
+
+/* =====================================================================
+   Gemini request building
+   ===================================================================== */
+const SYSTEM_PROMPT = [
+  'You are an expert Carnatic musicologist and music transcriber. You listen to a recording and write it as formal Carnatic swara notation.',
+  'Follow these rules exactly:',
+  '1. Use full swara names separated by single spaces: Sa Ri Ga Ma Pa Dha Ni, with variant numbers where they exist: Ri1 Ri2 Ri3, Ga1 Ga2 Ga3, Ma1 Ma2, Dha1 Dha2 Dha3, Ni1 Ni2 Ni3. Sa and Pa never take a number. Use the correct variants for the raga (for example Mayamalavagowla = Sa Ri1 Ga3 Ma1 Pa Dha1 Ni3 Sa.).',
+  '2. Mark the sthayi with dots: Mandra (lower octave) = dot BEFORE the swara, e.g. .Pa; Madhya (middle) = no dot, e.g. Pa; Tara (upper octave) = dot AFTER the swara, e.g. Sa.; Ati-tara = two dots after, e.g. Ri2..',
+  '3. Each token (a swara or a comma) occupies exactly one akshara. A comma "," means the previous swara is held for one more akshara. When two swaras share one akshara (faster speed), wrap them in parentheses, e.g. (Ga3 Ma1).',
+  '4. Beat dividers: put "|" between the angas of the talam and "||" at the end of every avartanam. One avartanam per entry in the avartanams array, with exactly as many aksharas as the talam has. Separate every token and divider with spaces.',
+  '5. Organise the piece into sections named Pallavi, Anupallavi and Charanam (use "Charanam 2" etc. for further charanams, and "Chittaswaram" if present). Omit sections the piece does not have. Transcribe the first complete rendition of each section; do not repeat repeated passages — mention repeats in notes.',
+  '6. In "sahitya" write the lyric of that avartanam in Roman transliteration, or an empty string if it is instrumental or unintelligible. Never invent lyrics.',
+  '7. Transcribe the principal melodic line (voice or lead instrument) relative to the given Sruthi (Sa). Simplify gamakas to the swara they land on.',
+  '8. Be honest. Put any uncertain passages, assumptions or repeats in "notes" and set "confidence" to High, Medium or Low. If the audio is not Carnatic music or is silent, return one section with an empty avartanams array and explain in notes.',
+  '9. If the Sruthi is unknown, estimate the tonic and return its Western note name (e.g. D or F#) in "sruthi_observed"; otherwise return the note name you were given.',
+  '10. Answer with JSON only, matching the response schema.'
+].join('\n');
+
+const RESPONSE_SCHEMA = {
+  type: 'OBJECT',
+  properties: {
+    title: { type: 'STRING' }, raga: { type: 'STRING' }, talam: { type: 'STRING' },
+    sruthi_observed: { type: 'STRING' }, confidence: { type: 'STRING' }, notes: { type: 'STRING' },
+    sections: { type: 'ARRAY', items: { type: 'OBJECT', properties: {
+      name: { type: 'STRING' },
+      avartanams: { type: 'ARRAY', items: { type: 'OBJECT', properties: { swara: { type: 'STRING' }, sahitya: { type: 'STRING' } }, required: ['swara'] } }
+    }, required: ['name', 'avartanams'] } }
+  },
+  required: ['raga', 'talam', 'sections']
+};
+
+function readParams(){
+  return {
+    mode: state.mode, file: state.file, link: $('#linkInput').value.trim(),
+    raga: $('#ragaSel').value, talam: $('#talamSel').value, sruthi: $('#sruthiSel').value
+  };
+}
+function buildUserPrompt(p){
+  const talam = TALAMS.find(t => t.id === p.talam);
+  const raga = p.raga === 'auto' ? 'Unknown — identify the raga from the recording.' : p.raga;
+  const tal = p.talam === 'auto' ? 'Unknown — identify the talam from the recording.' : `${talam.label} (${talam.hint}).`;
+  const sru = p.sruthi === 'auto' ? 'Unknown — estimate it.' : `Sa = ${NOTE_NAMES[+p.sruthi]} (${KATTAI[+p.sruthi]}).`;
+  return `Transcribe the attached recording into Carnatic swara notation.\nRaga: ${raga}\nTalam: ${tal}\nSruthi: ${sru}`;
+}
+function youTubeUrl(u){
+  const m = /(?:youtube\.com\/(?:watch\?(?:.*&)?v=|shorts\/|embed\/|live\/)|youtu\.be\/)([\w-]{11})/i.exec(u);
+  return m ? `https://www.youtube.com/watch?v=${m[1]}` : '';
+}
+const blobToBase64 = blob => new Promise((res, rej) => {
+  const fr = new FileReader(); fr.onload = () => res(String(fr.result).split(',')[1] || ''); fr.onerror = () => rej(fr.error); fr.readAsDataURL(blob);
+});
+
+async function prepareAudioPart(p, signal){
+  if (p.mode === 'file') {
+    return { inlineData: { mimeType: guessMime(p.file.name, p.file.type), data: await blobToBase64(p.file) } };
+  }
+  const yt = youTubeUrl(p.link);
+  if (yt) return { fileData: { fileUri: yt } };
+  let res;
+  try { res = await fetch(p.link, { signal }); } catch (e) {
+    if (e.name === 'AbortError') throw e;
+    throw new Error('That server does not allow downloads from a browser (CORS) or is unreachable. Download the audio and use the Upload tab instead.');
+  }
+  if (!res.ok) throw new Error(`Could not download the audio (HTTP ${res.status}).`);
+  const blob = await res.blob();
+  if (blob.size > CONFIG.MAX_UPLOAD_MB * 1048576) throw new Error(`The audio is ${fmtBytes(blob.size)}; the limit is ${CONFIG.MAX_UPLOAD_MB} MB.`);
+  const name = new URL(p.link).pathname;
+  const mime = guessMime(name, blob.type);
+  if (!mime) throw new Error('The link did not return a supported audio file.');
+  return { inlineData: { mimeType: mime, data: await blobToBase64(blob) } };
+}
+
+class ApiError extends Error { constructor(status, msg){ super(msg); this.status = status; } }
+async function callProxy(body, signal){
+  let res;
+  try { res = await fetch(getEndpoint(), { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body), signal }); }
+  catch (e) { if (e.name === 'AbortError') throw e; throw new ApiError(0, 'Could not reach your proxy. Check the endpoint in Settings and that the Worker is deployed.'); }
+  const text = await res.text(); let data = null; try { data = JSON.parse(text); } catch {}
+  if (!res.ok) {
+    const msg = (data && data.error && (data.error.message || data.error)) || text.slice(0, 240) || res.statusText;
+    throw new ApiError(res.status, String(msg));
+  }
+  return data;
+}
+function friendlyError(e){
+  if (!(e instanceof ApiError)) return e.message || 'Something went wrong.';
+  const m = e.message;
+  if (e.status === 0) return m;
+  if (e.status === 403 && /origin/i.test(m)) return 'The proxy rejected this website. Add its origin (e.g. https://yourname.github.io) to ALLOWED_ORIGINS on the Worker.';
+  if (e.status === 429) return 'The Gemini quota is exhausted for the moment. Wait a minute and retry — your payment is kept.';
+  if (e.status === 404) return 'The model was not found. Set a current model in the Worker\'s GEMINI_MODEL variable. (' + m + ')';
+  if (e.status === 413) return 'The recording is too large for one request. Try a shorter clip.';
+  if (e.status === 500 && /GEMINI_API_KEY/.test(m)) return 'The Worker has no GEMINI_API_KEY secret yet.';
+  return `Gemini/proxy error ${e.status}: ${m}`;
+}
+
+function tryParseJson(text){
+  const attempts = [text, text.replace(/^```(?:json)?\s*/i, '').replace(/```\s*$/, ''), (() => { const a = text.indexOf('{'), b = text.lastIndexOf('}'); return a >= 0 && b > a ? text.slice(a, b + 1) : ''; })()];
+  for (const t of attempts) { if (!t) continue; try { return JSON.parse(t); } catch {} }
+  return null;
+}
+function parseGeminiResult(data, p){
+  const cand = data && data.candidates && data.candidates[0];
+  if (!cand) { const br = data && data.promptFeedback && data.promptFeedback.blockReason; throw new Error(br ? `Gemini blocked the request (${br}).` : 'Gemini returned no result.'); }
+  const text = ((cand.content && cand.content.parts) || []).map(x => x.text || '').join('').trim();
+  if (!text) throw new Error('Gemini returned an empty response' + (cand.finishReason ? ` (${cand.finishReason})` : '') + '.');
+  const obj = tryParseJson(text);
+  if (!obj) throw new Error(cand.finishReason === 'MAX_TOKENS' ? 'The notation was cut off because the piece is long. Try a shorter clip.' : 'Could not read the notation returned by Gemini. Please retry.');
+  const sections = (Array.isArray(obj.sections) ? obj.sections : []).map(s => ({
+    name: String(s.name || 'Section'),
+    avartanams: (Array.isArray(s.avartanams) ? s.avartanams : []).filter(a => a && String(a.swara || '').trim()).map(a => ({ swara: String(a.swara), sahitya: String(a.sahitya || '') }))
+  })).filter(s => s.avartanams.length);
+  const notes = String(obj.notes || '').trim();
+  if (!sections.length) throw new Error(notes ? 'No notation could be produced: ' + notes : 'No notation could be produced from this recording.');
+  let base = p.sruthi === 'auto' ? 0 : +p.sruthi;
+  if (p.sruthi === 'auto') {
+    const s = String(obj.sruthi_observed || '').trim();
+    const m = /^([A-G])\s*(#|♯)?$/.exec(s);
+    const k = /(\d(?:\.5)?)\s*kattai/i.exec(s);
+    if (m) { const i = NOTE_NAMES.indexOf(m[1] + (m[2] ? '#' : '')); if (i >= 0) base = i; }
+    else if (k) { const i = KATTAI.findIndex(x => x.startsWith(k[1] + ' ')); if (i >= 0) base = i; }
+  }
+  return { title: String(obj.title || '').trim(), raga: String(obj.raga || '').trim() || (p.raga === 'auto' ? 'Unidentified' : p.raga),
+    talam: String(obj.talam || '').trim() || (p.talam === 'auto' ? 'Unidentified' : p.talam), confidence: String(obj.confidence || '').trim(),
+    notes, sections, sruthiBase: base, sruthiAuto: p.sruthi === 'auto' };
+}
+
+/* =====================================================================
+   Main transcription flow
+   ===================================================================== */
+function validateInputs(){
+  if (state.mode === 'file') return state.file ? '' : 'Please choose an audio file to transcribe.';
+  const l = $('#linkInput').value.trim();
+  if (!l) return 'Please paste a YouTube or audio link.';
+  try { const u = new URL(l); if (!/^https?:$/.test(u.protocol)) throw 0; } catch { return 'That does not look like a valid link (it must start with https://).'; }
+  return '';
+}
+
+async function startTranscription(){
+  if (state.busy) return;
+  const p = readParams();
+  state.busy = true; refreshUI(); hideError(); showProcessing();
+  const ac = new AbortController(); state.abort = ac;
+  const timeout = setTimeout(() => ac.abort('timeout'), CONFIG.REQUEST_TIMEOUT_MS);
+  try {
+    const audio = await prepareAudioPart(p, ac.signal);
+    stepTimers.push(setTimeout(() => setStep(1), 4500), setTimeout(() => setStep(2), 11500));
+    const body = {
+      systemInstruction: { parts: [{ text: SYSTEM_PROMPT }] },
+      contents: [{ role: 'user', parts: [audio, { text: buildUserPrompt(p) }] }],
+      generationConfig: { temperature: 0.2, maxOutputTokens: 32768, responseMimeType: 'application/json', responseSchema: RESPONSE_SCHEMA }
+    };
+    const data = await callProxy(body, ac.signal);
+    const result = parseGeminiResult(data, p);
+
+    stepTimers.forEach(clearTimeout); stepTimers = [];
+    for (const i of [1, 2, 3]) { setStep(i); await sleep(i === 3 ? 900 : 380); }
+    $('#procBar').style.width = '100%'; $$('#stepList li').forEach(li => { li.classList.remove('active'); li.classList.add('done'); li.querySelector('.dot').textContent = '✓'; });
+    await sleep(500);
+
+    state.result = result; state.sruthiBase = state.sruthiIdx = result.sruthiBase;
+    state.credit = null; store.del(CONFIG.KEY_CREDIT, sessionStorage);   // credit is consumed only on success
+    renderResult(); hideProcessing();
+    $('#inputCard').hidden = true; $('#results').hidden = false;
+    $('#results').scrollIntoView({ behavior: 'smooth', block: 'start' });
+  } catch (err) {
+    hideProcessing();
+    if (err && err.name === 'AbortError') {
+      toast(ac.signal.reason === 'timeout' ? 'The request timed out. Your payment is kept — try again.' : 'Cancelled. Your payment is kept.', ac.signal.reason === 'timeout');
+      if (ac.signal.reason === 'timeout') showError('The request timed out. Try a shorter clip. Your payment is kept, so a retry is free.');
+    } else {
+      const msg = friendlyError(err); showError(msg + (state.credit ? ' Your payment is kept — retrying costs nothing.' : '')); toast('Transcription failed.', true);
+    }
+  } finally {
+    clearTimeout(timeout); state.busy = false; state.abort = null; refreshUI();
+  }
+}
+
+$('#payBtn').addEventListener('click', () => {
+  const err = validateInputs();
+  if (err) { showError(err); return; }
+  hideError();
+  if (!getEndpoint()) { showError('Add your Cloudflare Worker endpoint in Settings first.'); openDrawer(); return; }
+  if (state.credit) startTranscription(); else openPayment();
+});
+
+/* =====================================================================
+   Notation parsing / rendering
+   ===================================================================== */
+function parseToken(t){
+  if (/^\|{2,}$/.test(t)) return { type: 'dbar', text: '||' };
+  if (t === '|') return { type: 'bar', text: '|' };
+  if (t === ',' || t === ';') return { type: 'ext', text: t };
+  if (/^[-–—]$/.test(t)) return { type: 'ext', text: '-' };
+  const m = /^(\(*)(\.{0,2})([A-Za-z]{1,3})([1-3])?(\.{0,2})(\)*)$/.exec(t);
+  if (m) {
+    const base = LETTER_MAP[m[3].toUpperCase()];
+    if (base) {
+      let variant = (base === 'Sa' || base === 'Pa') ? '' : (m[4] || '');
+      let key = base + variant;
+      if (!(key in SWARA_SEMI)) { variant = ''; key = base + DEFAULT_VAR[base]; }
+      const shift = m[5].length - m[2].length;
+      return { type: 'swara', open: m[1], dotsL: m[2], base, variant, dotsR: m[5], close: m[6], semi: SWARA_SEMI[key], shift,
+        sthayi: shift < 0 ? 'mandra' : shift > 0 ? 'tara' : 'madhya' };
+    }
+  }
+  return { type: 'txt', text: t };
+}
+function parseTokens(str){
+  return String(str || '').replace(/\|+/g, m => ` ${m} `).replace(/[,;]/g, m => ` ${m} `).split(/\s+/).filter(Boolean).map(parseToken);
+}
+const tokenText = t => t.type === 'swara' ? `${t.open}${t.dotsL}${t.base}${t.variant}${t.dotsR}${t.close}` : t.text;
+function westernFor(t){
+  const total = state.sruthiIdx + t.semi;
+  return NOTE_NAMES[total % 12] + (4 + t.shift + Math.floor(total / 12));
+}
+function makeCell(t){
+  const c = el('span', 'cell'), top = el('span', 't');
+  if (t.type === 'swara') {
+    c.classList.add('sw', t.sthayi);
+    c.title = t.sthayi[0].toUpperCase() + t.sthayi.slice(1) + ' sthayi';
+    if (t.open) top.append(el('span', 'pn', t.open));
+    top.append(document.createTextNode(t.dotsL + t.base));
+    if (t.variant) top.append(el('sub', null, t.variant));
+    if (t.dotsR) top.append(document.createTextNode(t.dotsR));
+    if (t.close) top.append(el('span', 'pn', t.close));
+  } else { c.classList.add(t.type); top.textContent = t.text; }
+  c.append(top);
+  if (state.showWestern) c.append(el('span', 'b', t.type === 'swara' ? westernFor(t) : ''));
+  return c;
+}
+function semiDelta(){ let d = (state.sruthiIdx - state.sruthiBase + 12) % 12; if (d > 6) d -= 12; return d; }
+
+function renderResult(){
+  const r = state.result;
+  $('#resTitle').textContent = r.title || `${r.raga} · ${r.talam}`;
+  const chips = $('#chips'); chips.replaceChildren();
+  const chip = (k, v) => { const c = el('span', 'chip'); c.append(el('b', null, k + ' '), document.createTextNode(v)); chips.append(c); };
+  chip('Raga', r.raga); chip('Talam', r.talam);
+  chip('Sruthi', sruthiLabel(state.sruthiIdx) + (r.sruthiAuto && state.sruthiIdx === state.sruthiBase ? ' (estimated)' : ''));
+  if (semiDelta() !== 0) chip('Transposed', (semiDelta() > 0 ? '+' : '') + semiDelta() + ' semitones');
+  if (r.confidence) chip('Confidence', r.confidence);
+  $('#trLabel').textContent = sruthiLabel(state.sruthiIdx);
+
+  const root = $('#notation'); root.replaceChildren();
+  r.sections.forEach(sec => {
+    const s = el('section', 'sec'); s.append(el('h3', 'sec-title', sec.name));
+    sec.avartanams.forEach((av, i) => {
+      const row = el('div', 'av'); row.append(el('span', 'av-n', String(i + 1)));
+      const body = el('div'), line = el('div', 'swaras');
+      parseTokens(av.swara).forEach(t => line.append(makeCell(t)));
+      body.append(line);
+      if (av.sahitya.trim()) body.append(el('div', 'sahitya', av.sahitya.trim()));
+      row.append(body); s.append(row);
+    });
+    root.append(s);
+  });
+  const nb = $('#notesBox');
+  if (r.notes) { nb.replaceChildren(el('b', null, 'Transcriber’s notes'), el('div', null, r.notes)); nb.hidden = false; } else nb.hidden = true;
+}
+
+function buildPlainText(){
+  const r = state.result, L = [];
+  L.push('SWARALAYAM · Carnatic Notation', '='.repeat(40));
+  if (r.title) L.push('Title : ' + r.title);
+  L.push('Raga  : ' + r.raga, 'Talam : ' + r.talam);
+  L.push('Sruthi: ' + sruthiLabel(state.sruthiIdx) + (semiDelta() ? `  (transposed ${semiDelta() > 0 ? '+' : ''}${semiDelta()} semitones)` : ''));
+  L.push('Sthayi: .Sa = Mandra · Sa = Madhya · Sa. = Tara', '');
+  r.sections.forEach(sec => {
+    L.push(sec.name.toUpperCase(), '-'.repeat(sec.name.length));
+    sec.avartanams.forEach((av, i) => {
+      const toks = parseTokens(av.swara);
+      L.push(String(i + 1).padStart(2, ' ') + '. ' + toks.map(tokenText).join(' '));
+      if (state.showWestern) L.push('    ~ ' + toks.filter(t => t.type === 'swara').map(westernFor).join(' '));
+      if (av.sahitya.trim()) L.push('    ' + av.sahitya.trim());
+    });
+    L.push('');
+  });
+  if (r.notes) L.push('Notes: ' + r.notes, '');
+  L.push('AI-generated transcription — verify against the recording.');
+  return L.join('\n');
+}
+
+/* ---- toolbar ---- */
+function transpose(d){ state.sruthiIdx = (state.sruthiIdx + d + 12) % 12; renderResult(); }
+$('#trUp').addEventListener('click', () => transpose(1));
+$('#trDown').addEventListener('click', () => transpose(-1));
+$('#trReset').addEventListener('click', () => { state.sruthiIdx = state.sruthiBase; renderResult(); });
+$('#westernToggle').addEventListener('change', e => { state.showWestern = e.target.checked; renderResult(); });
+$('#copyBtn').addEventListener('click', async () => {
+  const text = buildPlainText();
+  try { await navigator.clipboard.writeText(text); toast('Notation copied to clipboard.'); }
+  catch {
+    const ta = el('textarea'); ta.value = text; ta.style.cssText = 'position:fixed;opacity:0'; document.body.append(ta); ta.select();
+    try { document.execCommand('copy'); toast('Notation copied to clipboard.'); } catch { toast('Copy failed — select the text manually.', true); }
+    ta.remove();
+  }
+});
+$('#dlBtn').addEventListener('click', () => {
+  const slug = (state.result.title || state.result.raga || 'notation').toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '').slice(0, 50) || 'notation';
+  const url = URL.createObjectURL(new Blob([buildPlainText()], { type: 'text/plain;charset=utf-8' }));
+  const a = el('a'); a.href = url; a.download = `swaralayam-${slug}.txt`; document.body.append(a); a.click(); a.remove();
+  setTimeout(() => URL.revokeObjectURL(url), 1500); toast('Downloaded.');
+});
+$('#printBtn').addEventListener('click', () => {
+  const old = document.title; document.title = 'Swaralayam – ' + (state.result.title || state.result.raga);
+  window.addEventListener('afterprint', () => { document.title = old; }, { once: true });
+  window.print();
+});
+$('#newBtn').addEventListener('click', () => {
+  $('#results').hidden = true; $('#inputCard').hidden = false; state.result = null; refreshUI();
+  window.scrollTo({ top: 0, behavior: 'smooth' });
+});
+
+/* ---- init ---- */
+fillSelects(); refreshUI();
+})();
+</script>
 </body>
 </html>
