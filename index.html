@@ -511,7 +511,7 @@ footer{position:relative;z-index:1;text-align:center;padding:18px 20px 40px;colo
    CONFIG — the only values you may want to edit
    ===================================================================== */
 const CONFIG = {
-  DEFAULT_WORKER_URL: '',          // PLACEHOLDER: e.g. 'https://swaralayam-proxy.YOUR-SUBDOMAIN.workers.dev' (users can also set it in Settings)
+  DEFAULT_WORKER_URL: 'https://swaralayam-api.varsikanofficial.workers.dev',   // your Cloudflare Worker (visitors use this automatically). Open the page with ?setup=1 to reveal Settings.
   PRICE_LKR: 100,
   PAYMENT_MODE: 'simulation',      // 'simulation' | 'live' (live requires wiring liveCharge() below)
   MAX_UPLOAD_MB: 14,               // base64 inflates ~33%; Gemini inline request limit is ~20 MB
@@ -601,7 +601,9 @@ function normalizeEndpoint(raw){
   u.search = ''; u.hash = '';
   return u.href.replace(/\/+$/, '');
 }
-const getEndpoint = () => normalizeEndpoint(store.get(CONFIG.KEY_ENDPOINT) || CONFIG.DEFAULT_WORKER_URL);
+const SETUP_MODE = /[?&]setup(=|&|$)/.test(location.search);
+const PUBLIC_MODE = !SETUP_MODE && !!normalizeEndpoint(CONFIG.DEFAULT_WORKER_URL);
+const getEndpoint = () => normalizeEndpoint(PUBLIC_MODE ? CONFIG.DEFAULT_WORKER_URL : (store.get(CONFIG.KEY_ENDPOINT) || CONFIG.DEFAULT_WORKER_URL));
 const healthUrl = ep => ep.replace(/\/api\/transcribe$/, '') + '/api/health';
 
 /* =====================================================================
@@ -1228,7 +1230,8 @@ $('#newBtn').addEventListener('click', () => {
 });
 
 /* ---- init ---- */
-fillSelects(); refreshUI(); checkConnection();
+fillSelects(); refreshUI();
+if (PUBLIC_MODE) { $('#openSettings').hidden = true; $('#connStatus').hidden = true; $('#setupBanner').hidden = true; } else { checkConnection(); }
 })();
 </script>
 </body>
