@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>Swaralayam — Carnatic AI Transcriber</title>
-<meta name="description" content="Convert Carnatic music recordings into formal swara notation — Pallavi, Anupallavi and Charanam — with sthayi marks and talam dividers.">
+<meta name="description" content="Turn a Carnatic recording into formal swara notation — Pallavi, Anupallavi and Charanam — with sthayi marks and talam dividers.">
 <meta name="theme-color" content="#4A0E17">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -14,7 +14,7 @@
 :root{
   --maroon:#4A0E17; --maroon-deep:#2a060d; --maroon-mid:#6b1a27;
   --gold:#D4AF37; --gold-soft:#ecd98a; --gold-deep:#9c7a14;
-  --parchment:#FDFBF7; --parchment-2:#f4ecdc; --ink:#2b1a1c; --muted:#7a6a63;
+  --parchment:#FDFBF7; --parchment-2:#f4ecdc; --ink:#2b1a1c; --muted:#76665f;
   --ok:#2e7d4f; --err:#b3261e; --mandra:#1f6f78; --tara:#9a2a2a;
   --radius:18px;
   --serif:'Cormorant Garamond','Playfair Display',Georgia,'Times New Roman',serif;
@@ -23,7 +23,7 @@
 }
 *{box-sizing:border-box}
 [hidden]{display:none!important}
-html{-webkit-text-size-adjust:100%;scroll-behavior:smooth}
+html{-webkit-text-size-adjust:100%;scroll-behavior:smooth;background:#240509}
 body{
   margin:0;font-family:var(--sans);color:var(--parchment);line-height:1.55;min-height:100vh;
   background:
@@ -32,6 +32,7 @@ body{
     linear-gradient(180deg,#4A0E17 0%,#350a11 55%,#240509 100%);
   background-attachment:fixed;
 }
+@media (max-width:700px){body{background-attachment:scroll}}
 body::before{
   content:"";position:fixed;inset:0;pointer-events:none;opacity:.07;z-index:0;
   background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='64' height='64'%3E%3Cpath d='M32 4 60 32 32 60 4 32Z' fill='none' stroke='%23D4AF37' stroke-width='1'/%3E%3Ccircle cx='32' cy='32' r='4' fill='none' stroke='%23D4AF37'/%3E%3C/svg%3E");
@@ -39,21 +40,20 @@ body::before{
 .wrap{position:relative;z-index:1;width:100%;max-width:1060px;margin:0 auto;padding:0 20px}
 a{color:var(--gold-soft)}
 button{font:inherit;cursor:pointer}
+.sr-only{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap}
 :focus-visible{outline:3px solid var(--gold);outline-offset:2px;border-radius:6px}
 
 /* ---------- Header ---------- */
-.top{display:flex;align-items:center;justify-content:space-between;padding:18px 20px}
+.top{position:relative;z-index:2;display:flex;align-items:center;justify-content:space-between;padding:18px 20px;max-width:1100px;margin:0 auto}
 .brand{display:flex;align-items:center;gap:12px;text-decoration:none;color:inherit}
 .brand-name{display:block;font-family:var(--serif);font-size:1.7rem;font-weight:700;letter-spacing:.02em;color:var(--parchment);line-height:1}
 .brand-tamil{display:block;font-family:'Noto Serif Tamil',var(--serif);font-size:.82rem;color:var(--gold);letter-spacing:.06em;margin-top:4px}
+.top-right{display:flex;align-items:center;gap:10px;flex-wrap:wrap;justify-content:flex-end}
 .icon-btn{display:inline-flex;align-items:center;gap:8px;padding:9px 14px;border-radius:999px;color:var(--parchment);
   background:rgba(255,255,255,.08);border:1px solid rgba(212,175,55,.45);backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px)}
 .icon-btn:hover{background:rgba(212,175,55,.18)}
-
-
-.top-right{display:flex;align-items:center;gap:10px;flex-wrap:wrap;justify-content:flex-end}
 .status-pill{display:inline-flex;align-items:center;gap:8px;padding:8px 14px;border-radius:999px;font-size:.82rem;font-weight:600;color:var(--parchment);
-  background:rgba(255,255,255,.08);border:1px solid rgba(212,175,55,.35);backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px);max-width:60vw}
+  background:rgba(255,255,255,.08);border:1px solid rgba(212,175,55,.35);max-width:60vw}
 .status-pill #connText{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .status-pill .dot{flex:none;width:10px;height:10px;border-radius:50%;background:#b9a9a0}
 .status-pill[data-state="ok"]{border-color:rgba(76,200,120,.7)}
@@ -61,16 +61,19 @@ button{font:inherit;cursor:pointer}
 .status-pill[data-state="warn"] .dot{background:#f0b429}
 .status-pill[data-state="bad"] .dot{background:#ef5350}
 .status-pill[data-state="checking"] .dot{background:var(--gold);animation:pulse 1s infinite}
-@media (max-width:640px){.status-pill{padding:8px 11px}}
 
 /* ---------- Hero ---------- */
-.hero{padding:26px 0 30px;text-align:center}
+.hero{padding:22px 0 30px;text-align:center}
 .eyebrow{margin:0 0 6px;font-size:.74rem;letter-spacing:.22em;text-transform:uppercase;color:var(--gold);font-weight:600}
-.hero h1{font-family:var(--serif);font-weight:600;font-size:clamp(2.1rem,6vw,3.6rem);line-height:1.08;margin:0 0 14px}
+.hero h1{font-family:var(--serif);font-weight:600;font-size:clamp(2.2rem,6.4vw,3.8rem);line-height:1.06;margin:0 0 14px}
 .hero h1 em{color:var(--gold);font-style:italic}
-.lead{max-width:640px;margin:0 auto;color:rgba(253,251,247,.82);font-size:1.05rem}
-.trust{list-style:none;margin:22px 0 0;padding:0;display:flex;flex-wrap:wrap;gap:10px;justify-content:center}
-.trust li{padding:7px 14px;border-radius:999px;font-size:.82rem;background:rgba(255,255,255,.07);border:1px solid rgba(212,175,55,.3);backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px)}
+.lead{max-width:600px;margin:0 auto;color:rgba(253,251,247,.84);font-size:1.06rem}
+.orn{display:flex;align-items:center;justify-content:center;gap:12px;color:var(--gold);margin:20px auto 0;max-width:260px;font-size:.7rem}
+.orn::before,.orn::after{content:"";flex:1;height:1px;background:linear-gradient(90deg,transparent,var(--gold))}
+.orn::after{background:linear-gradient(270deg,transparent,var(--gold))}
+.how{list-style:none;margin:20px auto 0;padding:0;display:flex;flex-wrap:wrap;justify-content:center;gap:10px 26px;font-size:.92rem;color:rgba(253,251,247,.88)}
+.how li{display:flex;align-items:center;gap:9px}
+.how b{display:inline-grid;place-items:center;width:24px;height:24px;border-radius:50%;background:var(--gold);color:var(--maroon);font-size:.78rem}
 
 /* ---------- Cards ---------- */
 .card{
@@ -78,27 +81,29 @@ button{font:inherit;cursor:pointer}
   border:1px solid rgba(212,175,55,.55);margin-bottom:26px;
   box-shadow:0 26px 60px rgba(0,0,0,.38),inset 0 0 0 4px var(--parchment),inset 0 0 0 5px rgba(212,175,55,.35);
 }
-.glass{background:rgba(255,255,255,.08);border:1px solid rgba(212,175,55,.32);border-radius:var(--radius);
-  backdrop-filter:blur(16px) saturate(140%);-webkit-backdrop-filter:blur(16px) saturate(140%);box-shadow:0 18px 50px rgba(0,0,0,.3)}
 .card h2{font-family:var(--serif);font-size:1.7rem;margin:0 0 4px;color:var(--maroon)}
-.step-label{display:flex;align-items:center;gap:10px;margin:22px 0 12px;font-family:var(--serif);font-size:1.25rem;font-weight:700;color:var(--maroon)}
+.step-label{display:flex;align-items:center;gap:10px;margin:26px 0 12px;font-family:var(--serif);font-size:1.3rem;font-weight:700;color:var(--maroon)}
 .step-label:first-of-type{margin-top:0}
 .step-label .n{display:inline-grid;place-items:center;width:28px;height:28px;border-radius:50%;background:var(--maroon);color:var(--gold);font:600 .85rem var(--sans)}
 .banner{display:flex;gap:12px;align-items:center;justify-content:space-between;flex-wrap:wrap;padding:12px 16px;margin-bottom:20px;border-radius:12px;
   background:#fff6df;border:1px solid #e6cf85;color:#5b4208;font-size:.92rem}
 .banner button{background:var(--maroon);color:var(--gold);border:0;border-radius:999px;padding:7px 14px;font-weight:600}
 
-/* ---------- Segmented control ---------- */
+/* ---------- Segmented ---------- */
 .seg{display:grid;grid-template-columns:repeat(2,1fr);gap:4px;padding:4px;background:var(--parchment-2);border-radius:12px;border:1px solid rgba(74,14,23,.12)}
 .seg.seg3{grid-template-columns:repeat(3,1fr)}
 .seg button{border:0;background:transparent;color:var(--muted);padding:10px 8px;border-radius:9px;font-weight:600;font-size:.92rem}
-.seg button[aria-selected="true"]{background:var(--maroon);color:var(--gold);box-shadow:0 4px 12px rgba(74,14,23,.3)}
+.seg button[aria-selected="true"],.seg button[aria-pressed="true"]{background:var(--maroon);color:var(--gold);box-shadow:0 4px 12px rgba(74,14,23,.3)}
+.seg.mini{display:inline-grid;grid-template-columns:repeat(2,auto)}
+.seg.mini button{padding:6px 12px;font-size:.84rem;font-family:var(--mono)}
 
 /* ---------- Dropzone ---------- */
-.drop{margin-top:14px;border:2px dashed rgba(156,122,20,.7);border-radius:14px;padding:30px 18px;text-align:center;cursor:pointer;
+.drop{margin-top:14px;border:2px dashed rgba(156,122,20,.7);border-radius:14px;padding:32px 18px;text-align:center;cursor:pointer;
   background:linear-gradient(180deg,#fffdf8,#f9f2e2);transition:.2s}
 .drop:hover,.drop.over{border-color:var(--maroon);background:#fff6df;transform:translateY(-1px)}
-.drop .big{font-family:var(--serif);font-size:1.35rem;font-weight:700;color:var(--maroon)}
+.drop.shake{animation:shake .45s;border-color:var(--err)}
+@keyframes shake{20%,60%{transform:translateX(-6px)}40%,80%{transform:translateX(6px)}}
+.drop .big{font-family:var(--serif);font-size:1.4rem;font-weight:700;color:var(--maroon)}
 .drop .sub{color:var(--muted);font-size:.9rem;margin-top:4px}
 .drop svg{width:44px;height:44px;margin-bottom:8px}
 .file-card{margin-top:14px;display:grid;grid-template-columns:1fr auto;gap:8px 12px;align-items:center;padding:14px;border-radius:12px;background:var(--parchment-2);border:1px solid rgba(74,14,23,.12)}
@@ -106,6 +111,9 @@ button{font:inherit;cursor:pointer}
 .file-card .meta{color:var(--muted);font-size:.85rem}
 .file-card audio{grid-column:1/-1;width:100%;height:40px}
 .link-btn{background:none;border:0;color:var(--err);font-weight:600;text-decoration:underline}
+.yt-prev{margin-top:12px;display:flex;gap:12px;align-items:center;padding:10px;border-radius:12px;background:var(--parchment-2);border:1px solid rgba(74,14,23,.12)}
+.yt-prev img{width:120px;aspect-ratio:16/9;object-fit:cover;border-radius:8px;background:#ddd;flex:none}
+.yt-prev span{font-size:.9rem;color:var(--muted)}
 
 /* ---------- Fields ---------- */
 .field{display:flex;flex-direction:column;gap:6px}
@@ -116,6 +124,11 @@ button{font:inherit;cursor:pointer}
 .grid3{display:grid;grid-template-columns:repeat(auto-fit,minmax(210px,1fr));gap:16px}
 .grid2{display:grid;grid-template-columns:1fr 1fr;gap:14px}
 @media (max-width:520px){.grid2{grid-template-columns:1fr}}
+.scale{margin-top:14px;padding:12px 14px;border-radius:12px;background:linear-gradient(180deg,#fffaf0,#f8efd9);border:1px solid rgba(156,122,20,.4);font-size:.9rem}
+.scale .t{font-family:var(--serif);font-weight:700;font-size:1.1rem;color:var(--maroon)}
+.scale .row{display:flex;gap:10px;flex-wrap:wrap;align-items:baseline;margin-top:4px}
+.scale .k{font-size:.72rem;letter-spacing:.1em;text-transform:uppercase;color:var(--gold-deep);font-weight:600;min-width:84px}
+.scale code{font-family:var(--mono);font-size:.86rem;color:var(--ink)}
 
 /* ---------- Buttons ---------- */
 .btn{display:inline-flex;align-items:center;justify-content:center;gap:8px;padding:11px 18px;border-radius:12px;border:1px solid transparent;font-weight:600;font-size:.95rem;transition:.18s}
@@ -127,19 +140,31 @@ button{font:inherit;cursor:pointer}
 .btn.ghost:hover{background:var(--parchment-2)}
 .btn.block{width:100%;padding:14px 18px;font-size:1.02rem}
 .btn.sm{padding:7px 12px;font-size:.85rem;border-radius:9px}
+.btn.lg{padding:14px 26px;font-size:1.05rem}
 
-.buy{margin-top:26px;display:flex;flex-wrap:wrap;gap:16px;align-items:center;justify-content:space-between;padding:16px 18px;border-radius:14px;background:var(--maroon);color:var(--parchment)}
+.buy{margin-top:28px;display:flex;flex-wrap:wrap;gap:16px;align-items:center;justify-content:space-between;padding:16px 18px;border-radius:14px;background:var(--maroon);color:var(--parchment);box-shadow:0 10px 30px rgba(74,14,23,.35)}
 .price{display:flex;align-items:baseline;gap:10px}
 .price b{font-family:var(--serif);font-size:2rem;color:var(--gold);line-height:1}
 .price span{font-size:.85rem;color:rgba(253,251,247,.75)}
-.credit-pill{display:inline-flex;align-items:center;gap:8px;margin-top:10px;padding:6px 12px;border-radius:999px;background:rgba(46,125,79,.15);color:#bfe9cf;font-size:.82rem;border:1px solid rgba(46,125,79,.5)}
+.credit-pill{display:inline-flex;align-items:center;gap:8px;margin-top:10px;padding:6px 12px;border-radius:999px;background:rgba(46,125,79,.18);color:#bfe9cf;font-size:.82rem;border:1px solid rgba(46,125,79,.5)}
 .err-box{margin-top:16px;padding:12px 14px;border-radius:10px;background:#fdecea;border:1px solid #f1b4ae;color:#7a1c14;font-size:.92rem}
+.fine{margin:14px 0 0;font-size:.8rem;color:var(--muted)}
 
-/* ---------- Overlay / modals / drawer ---------- */
+/* ---------- History ---------- */
+.hist-head{display:flex;justify-content:space-between;align-items:center;gap:10px;margin-bottom:10px}
+.hist-head h2{font-size:1.5rem;margin:0}
+.hist-row{display:flex;gap:12px;align-items:center;justify-content:space-between;padding:12px 0;border-top:1px dotted rgba(74,14,23,.25)}
+.hist-row .ti{font-family:var(--serif);font-weight:700;font-size:1.15rem;color:var(--maroon);line-height:1.2}
+.hist-row .me{font-size:.82rem;color:var(--muted)}
+.hist-row .ac{display:flex;gap:8px;flex:none}
+
+/* ---------- Overlays ---------- */
 .overlay{position:fixed;inset:0;z-index:60;display:flex;align-items:center;justify-content:center;padding:18px;overflow:auto;
   background:radial-gradient(900px 500px at 50% 0%,rgba(212,175,55,.16),transparent 60%),rgba(26,4,8,.94)}
+.glass{background:rgba(255,255,255,.08);border:1px solid rgba(212,175,55,.32);border-radius:var(--radius);
+  backdrop-filter:blur(16px) saturate(140%);-webkit-backdrop-filter:blur(16px) saturate(140%);box-shadow:0 18px 50px rgba(0,0,0,.3)}
 .proc{width:100%;max-width:640px;padding:clamp(18px,4vw,32px);text-align:center;color:var(--parchment)}
-.proc h2{font-family:var(--serif);font-size:1.9rem;margin:0 0 4px}
+.proc h2{font-family:var(--serif);font-size:1.9rem;margin:0 0 4px;color:var(--parchment)}
 #waveCanvas{width:100%;height:220px;display:block;margin:10px 0 6px}
 .steps{list-style:none;margin:14px 0 0;padding:0;text-align:left;display:grid;gap:10px}
 .steps li{display:flex;gap:12px;align-items:center;padding:11px 14px;border-radius:12px;background:rgba(255,255,255,.05);border:1px solid rgba(212,175,55,.18);color:rgba(253,251,247,.55);transition:.3s}
@@ -183,8 +208,6 @@ button{font:inherit;cursor:pointer}
 .drawer.open{transform:none}
 .drawer .modal-head{position:sticky;top:0}
 .drawer .body{padding:22px;display:grid;gap:16px}
-.drawer ol{margin:0;padding-left:20px;font-size:.88rem;color:#4a3b3d}
-.drawer code{font-family:var(--mono);font-size:.82em;background:var(--parchment-2);padding:1px 5px;border-radius:5px}
 .test-out{font-size:.88rem;padding:10px 12px;border-radius:10px;background:var(--parchment-2)}
 .test-out.ok{background:#e4f4ea;color:#1c5b36}.test-out.bad{background:#fdecea;color:#7a1c14}
 
@@ -194,25 +217,33 @@ button{font:inherit;cursor:pointer}
 .toast.bad{background:#7a1c14}
 
 /* ---------- Notation output ---------- */
+.print-only{display:none}
 .res-head{display:flex;flex-wrap:wrap;gap:12px;justify-content:space-between;align-items:flex-start}
-.res-head h2{font-size:clamp(1.6rem,4vw,2.3rem)}
-.chips{display:flex;flex-wrap:wrap;gap:8px;margin:10px 0 0}
+.res-head h2{font-size:clamp(1.7rem,4.4vw,2.5rem);line-height:1.1}
+.chips{display:flex;flex-wrap:wrap;gap:8px;margin:12px 0 0}
 .chip{padding:5px 12px;border-radius:999px;font-size:.82rem;background:var(--parchment-2);border:1px solid rgba(156,122,20,.5);color:var(--maroon)}
 .chip b{font-weight:600;color:var(--gold-deep)}
-.toolbar{display:flex;flex-wrap:wrap;gap:8px;align-items:center;margin:20px 0 6px;padding:12px;border-radius:14px;background:var(--parchment-2);border:1px solid rgba(74,14,23,.12)}
-.toolbar .sep{width:1px;align-self:stretch;background:rgba(74,14,23,.2);margin:0 4px}
-.tr{display:inline-flex;align-items:center;gap:6px}
-.tr .lbl{min-width:120px;text-align:center;font-weight:600;font-size:.88rem;color:var(--maroon)}
-.chk{display:inline-flex;align-items:center;gap:6px;font-size:.88rem;color:var(--maroon);font-weight:600}
-.legend{display:flex;flex-wrap:wrap;gap:14px;font-size:.82rem;color:var(--muted);margin:6px 2px 0}
+.listen{margin-top:16px;padding:12px 14px;border-radius:12px;background:var(--parchment-2);border:1px solid rgba(74,14,23,.12);display:flex;gap:12px;align-items:center;flex-wrap:wrap}
+.listen .k{font-size:.74rem;letter-spacing:.12em;text-transform:uppercase;font-weight:600;color:var(--maroon)}
+.listen audio{flex:1;min-width:220px;height:38px}
+.toolbar{margin:18px 0 6px;padding:12px;border-radius:14px;background:var(--parchment-2);border:1px solid rgba(74,14,23,.12);display:grid;gap:12px}
+.tb-row{display:flex;flex-wrap:wrap;gap:8px 14px;align-items:center}
+.tb-group{display:inline-flex;align-items:center;gap:6px;flex-wrap:wrap}
+.tb-label{font-size:.72rem;letter-spacing:.1em;text-transform:uppercase;font-weight:600;color:var(--gold-deep);margin-right:2px}
+.tr .lbl{min-width:118px;text-align:center;font-weight:600;font-size:.88rem;color:var(--maroon)}
+.chk{display:inline-flex;align-items:center;gap:6px;font-size:.88rem;color:var(--maroon);font-weight:600;cursor:pointer}
+.legend{display:flex;flex-wrap:wrap;gap:14px;font-size:.82rem;color:var(--muted);margin:8px 2px 0}
 .legend span{font-family:var(--mono)}
 .legend .m{color:var(--mandra)}.legend .t{color:var(--tara)}
-.sec{margin-top:26px;break-inside:avoid-page}
+#notation{--nsz:18px}
+.sec{margin-top:28px;break-inside:avoid-page}
 .sec-title{display:flex;align-items:center;gap:10px;font-family:var(--serif);font-size:1.7rem;margin:0 0 8px;color:var(--maroon);padding-bottom:6px;border-bottom:2px solid var(--gold)}
 .sec-title::before{content:"◆";color:var(--gold);font-size:.8em}
-.av{display:grid;grid-template-columns:30px 1fr;gap:10px;padding:10px 4px;border-bottom:1px dotted rgba(74,14,23,.22)}
+.av{display:grid;grid-template-columns:30px 1fr;gap:10px;padding:11px 4px;border-bottom:1px dotted rgba(74,14,23,.22)}
+.av:nth-child(even){background:linear-gradient(90deg,rgba(212,175,55,.07),transparent)}
 .av-n{width:24px;height:24px;margin-top:4px;border-radius:50%;display:grid;place-items:center;font:600 .72rem var(--sans);color:var(--gold);background:var(--maroon)}
-.swaras{font-family:var(--mono);font-size:clamp(13px,3.7vw,18px);line-height:1.5;display:flex;flex-wrap:wrap;align-items:flex-start;color:var(--ink)}
+.swaras{font-family:var(--mono);font-size:var(--nsz);line-height:1.5;display:flex;flex-wrap:wrap;align-items:flex-start;color:var(--ink)}
+@media (max-width:560px){.swaras{font-size:calc(var(--nsz) * .82)}}
 .cell{display:inline-flex;flex-direction:column;align-items:center;min-width:3.5ch;padding:0 .25ch}
 .cell .t{white-space:nowrap}
 .cell .t sub{font-size:.66em;position:relative;top:.2em;vertical-align:baseline}
@@ -225,16 +256,19 @@ button{font:inherit;cursor:pointer}
 .cell.dbar .t{letter-spacing:-.15em}
 .cell.ext .t{color:var(--muted)}
 .cell.txt .t{color:var(--muted);font-style:italic}
-.sahitya{font-family:var(--serif);font-style:italic;font-size:1.1rem;color:#5b3a3f;margin-top:4px}
-.notes{margin-top:26px;padding:14px 16px;border-radius:12px;background:var(--parchment-2);border-left:4px solid var(--gold);font-size:.92rem}
+.cnt{align-self:center;margin-left:10px;padding:1px 8px;border-radius:999px;font:600 .68rem var(--sans);background:#fff3c9;color:#7a5a00;border:1px solid #ecd48a}
+.sahitya{font-family:var(--serif);font-style:italic;font-size:1.12rem;color:#5b3a3f;margin-top:4px}
+.qa{margin-top:22px;padding:12px 14px;border-radius:12px;background:#fff6df;border-left:4px solid #d9a21b;font-size:.9rem;color:#5b4208}
+.notes{margin-top:18px;padding:14px 16px;border-radius:12px;background:var(--parchment-2);border-left:4px solid var(--gold);font-size:.92rem}
 .notes b{font-family:var(--serif);font-size:1.1rem;color:var(--maroon)}
-.disclaimer{margin-top:18px;font-size:.8rem;color:var(--muted)}
 footer{position:relative;z-index:1;text-align:center;padding:18px 20px 40px;color:rgba(253,251,247,.6);font-size:.82rem}
 
 @media (max-width:640px){
   .icon-btn span{display:none}
-  .buy{flex-direction:column;align-items:stretch}
-  .toolbar .sep{display:none}
+  .status-pill{padding:8px 11px}
+  .buy{position:sticky;bottom:10px;z-index:5;flex-direction:row}
+  .buy .btn{flex:1}
+  .yt-prev img{width:96px}
 }
 @media (prefers-reduced-motion:reduce){*{animation-duration:.01ms!important;transition-duration:.01ms!important}}
 
@@ -242,9 +276,11 @@ footer{position:relative;z-index:1;text-align:center;padding:18px 20px 40px;colo
   @page{margin:14mm}
   body{background:#fff!important;color:#000}
   body::before{display:none}
-  .no-print,.top,.hero,#inputCard,.toolbar,footer,.overlay,.backdrop,.drawer,.scrim,.toast{display:none!important}
-  .card{box-shadow:none!important;border:0!important;padding:0!important;margin:0!important}
-  .swaras{font-size:12.5px}
+  .no-print,.top,.hero,#inputCard,#historyCard,.toolbar,.legend,.listen,footer,.overlay,.backdrop,.drawer,.scrim,.toast,.qa{display:none!important}
+  .print-only{display:block;margin-bottom:10px;font-family:var(--serif);font-size:1rem;color:#4A0E17;border-bottom:2px solid #D4AF37;padding-bottom:4px}
+  .card{box-shadow:none!important;border:0!important;padding:0!important;margin:0!important;background:#fff!important}
+  .av:nth-child(even){background:none}
+  #notation{--nsz:13px}
   .cell.mandra .t,.cell.tara .t,.cell.bar .t,.cell.dbar .t{-webkit-print-color-adjust:exact;print-color-adjust:exact}
 }
 </style>
@@ -253,7 +289,7 @@ footer{position:relative;z-index:1;text-align:center;padding:18px 20px 40px;colo
 <body>
 
 <header class="top no-print">
-  <a class="brand" href="#" aria-label="Swaralayam home">
+  <a class="brand" href="./" aria-label="Swaralayam home">
     <svg width="42" height="42" viewBox="0 0 48 48" aria-hidden="true">
       <circle cx="24" cy="24" r="21" fill="none" stroke="#D4AF37" stroke-width="2"/>
       <circle cx="24" cy="24" r="16.5" fill="rgba(212,175,55,.1)" stroke="#D4AF37" stroke-width=".8"/>
@@ -262,11 +298,11 @@ footer{position:relative;z-index:1;text-align:center;padding:18px 20px 40px;colo
     <span><span class="brand-name">Swaralayam</span><span class="brand-tamil" lang="ta">ஸ்வரலயம்</span></span>
   </a>
   <div class="top-right">
-  <button type="button" class="status-pill" id="connStatus" data-state="none" aria-live="polite" title="Proxy connection status"><span class="dot" aria-hidden="true"></span><span id="connText">Not connected</span></button>
-  <button class="icon-btn" id="openSettings" aria-haspopup="dialog" aria-controls="drawer">
-    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.7 1.7 0 0 0 .3 1.8l.1.1a2 2 0 1 1-2.8 2.8l-.1-.1a1.7 1.7 0 0 0-1.8-.3 1.7 1.7 0 0 0-1 1.5V21a2 2 0 1 1-4 0v-.1a1.7 1.7 0 0 0-1.1-1.5 1.7 1.7 0 0 0-1.8.3l-.1.1a2 2 0 1 1-2.8-2.8l.1-.1a1.7 1.7 0 0 0 .3-1.8 1.7 1.7 0 0 0-1.5-1H3a2 2 0 1 1 0-4h.1a1.7 1.7 0 0 0 1.5-1.1 1.7 1.7 0 0 0-.3-1.8l-.1-.1a2 2 0 1 1 2.8-2.8l.1.1a1.7 1.7 0 0 0 1.8.3H9a1.7 1.7 0 0 0 1-1.5V3a2 2 0 1 1 4 0v.1a1.7 1.7 0 0 0 1 1.5 1.7 1.7 0 0 0 1.8-.3l.1-.1a2 2 0 1 1 2.8 2.8l-.1.1a1.7 1.7 0 0 0-.3 1.8V9a1.7 1.7 0 0 0 1.5 1H21a2 2 0 1 1 0 4h-.1a1.7 1.7 0 0 0-1.5 1z"/></svg>
-    <span>Settings</span>
-  </button>
+    <button type="button" class="status-pill" id="connStatus" data-state="none" aria-live="polite" title="Proxy connection status"><span class="dot" aria-hidden="true"></span><span id="connText">Not connected</span></button>
+    <button class="icon-btn" id="openSettings" aria-haspopup="dialog" aria-controls="drawer">
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.7 1.7 0 0 0 .3 1.8l.1.1a2 2 0 1 1-2.8 2.8l-.1-.1a1.7 1.7 0 0 0-1.8-.3 1.7 1.7 0 0 0-1 1.5V21a2 2 0 1 1-4 0v-.1a1.7 1.7 0 0 0-1.1-1.5 1.7 1.7 0 0 0-1.8.3l-.1.1a2 2 0 1 1-2.8-2.8l.1-.1a1.7 1.7 0 0 0 .3-1.8 1.7 1.7 0 0 0-1.5-1H3a2 2 0 1 1 0-4h.1a1.7 1.7 0 0 0 1.5-1.1 1.7 1.7 0 0 0-.3-1.8l-.1-.1a2 2 0 1 1 2.8-2.8l.1.1a1.7 1.7 0 0 0 1.8.3H9a1.7 1.7 0 0 0 1-1.5V3a2 2 0 1 1 4 0v.1a1.7 1.7 0 0 0 1 1.5 1.7 1.7 0 0 0 1.8-.3l.1-.1a2 2 0 1 1 2.8 2.8l-.1.1a1.7 1.7 0 0 0-.3 1.8V9a1.7 1.7 0 0 0 1.5 1H21a2 2 0 1 1 0 4h-.1a1.7 1.7 0 0 0-1.5 1z"/></svg>
+      <span>Settings</span>
+    </button>
   </div>
 </header>
 
@@ -274,24 +310,23 @@ footer{position:relative;z-index:1;text-align:center;padding:18px 20px 40px;colo
   <section class="hero no-print">
     <p class="eyebrow">Carnatic AI Transcriber</p>
     <h1>Hear a kriti. <em>Read</em> it in swaras.</h1>
-    <p class="lead">Upload a recording or paste a link. Swaralayam listens with Google Gemini and sets the melody as formal notation — Pallavi, Anupallavi, Charanam — with sthayi marks and talam dividers.</p>
-    <ul class="trust">
-      <li>🔐 API key never in the browser</li>
-      <li>🎼 Mandra · Madhya · Tara</li>
-      <li>🪔 LKR 100 per notation</li>
-    </ul>
+    <p class="lead">Upload a recording or paste a link, and get it back as formal Carnatic notation — Pallavi, Anupallavi and Charanam — with sthayi marks and talam dividers.</p>
+    <div class="orn" aria-hidden="true">◆ ◆ ◆</div>
+    <ol class="how">
+      <li><b>1</b> Add a recording</li>
+      <li><b>2</b> Pay LKR 100</li>
+      <li><b>3</b> Read &amp; download your notation</li>
+    </ol>
   </section>
 
   <!-- ===== INPUT ===== -->
-  <section id="inputCard" class="card no-print" aria-labelledby="inputTitle">
-    <h2 id="inputTitle" class="sr-only" style="position:absolute;left:-9999px">Transcription input</h2>
-
+  <section id="inputCard" class="card no-print" aria-label="Transcription input">
     <div id="setupBanner" class="banner" hidden>
       <span>⚙ Add your Cloudflare Worker endpoint in Settings to enable transcription.</span>
       <button type="button" id="bannerSettings">Open settings</button>
     </div>
 
-    <div class="step-label"><span class="n">1</span> Choose your recording</div>
+    <div class="step-label"><span class="n">1</span> Your recording</div>
     <div class="seg" role="tablist" aria-label="Input mode">
       <button type="button" role="tab" data-mode="file" aria-selected="true">⬆ Upload audio</button>
       <button type="button" role="tab" data-mode="link" aria-selected="false">🔗 Audio link</button>
@@ -301,7 +336,7 @@ footer{position:relative;z-index:1;text-align:center;padding:18px 20px 40px;colo
       <div id="dropzone" class="drop" role="button" tabindex="0" aria-label="Choose or drop an audio file">
         <svg viewBox="0 0 48 48" fill="none" stroke="#9c7a14" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M24 33V11M15 20l9-9 9 9"/><path d="M8 33v5a3 3 0 0 0 3 3h26a3 3 0 0 0 3-3v-5"/></svg>
         <div class="big">Drag &amp; drop audio here</div>
-        <div class="sub">or click to browse · MP3, WAV, FLAC, AAC, OGG, M4A · up to <span id="maxMb">14</span> MB</div>
+        <div class="sub">or tap to browse · MP3, WAV, FLAC, AAC, OGG, M4A · up to <span id="maxMb">14</span> MB</div>
       </div>
       <input type="file" id="fileInput" accept="audio/*,.mp3,.wav,.aac,.ogg,.flac,.aiff,.aif,.m4a" hidden>
       <div id="fileCard" class="file-card" hidden>
@@ -315,65 +350,104 @@ footer{position:relative;z-index:1;text-align:center;padding:18px 20px 40px;colo
       <div class="field">
         <label for="linkInput">YouTube or direct audio URL</label>
         <input type="url" id="linkInput" placeholder="https://www.youtube.com/watch?v=…" autocomplete="off" inputmode="url">
-        <span class="hint">Public YouTube links are analysed directly by Gemini. Other URLs must allow cross-origin downloads (CORS); if the site blocks it, upload the file instead.</span>
+        <span class="hint">Public YouTube links work best. For other links, the website must allow downloads from a browser — if it doesn't, upload the file instead.</span>
+      </div>
+      <div id="ytPrev" class="yt-prev" hidden>
+        <img id="ytThumb" alt="" loading="lazy" referrerpolicy="no-referrer">
+        <span id="ytText">YouTube video detected.</span>
       </div>
     </div>
 
-    <div class="step-label"><span class="n">2</span> Musical parameters</div>
+    <div class="step-label"><span class="n">2</span> About the piece</div>
     <div class="grid3">
       <div class="field"><label for="ragaSel">Raga</label><select id="ragaSel"></select></div>
       <div class="field"><label for="talamSel">Talam</label><select id="talamSel"></select></div>
       <div class="field"><label for="sruthiSel">Pitch / Sruthi</label><select id="sruthiSel"></select></div>
     </div>
+    <div id="scaleHint" class="scale" hidden></div>
 
     <div id="errorBox" class="err-box" role="alert" hidden></div>
 
     <div class="buy">
       <div>
-        <div class="price"><b id="priceBig">LKR 100</b><span>per notation · one-time</span></div>
-        <div id="creditPill" class="credit-pill" hidden>✓ Payment received · <span id="creditReceipt"></span></div>
+        <div class="price"><b id="priceBig">LKR 100</b><span>per notation</span></div>
+        <div id="creditPill" class="credit-pill" hidden>✓ Paid · <span id="creditReceipt"></span></div>
       </div>
-      <button type="button" class="btn primary" id="payBtn"></button>
+      <button type="button" class="btn primary lg" id="payBtn"></button>
     </div>
-    <p class="disclaimer">AI transcription is an approximation. Gamakas are simplified to the swara they land on — always verify against the recording.</p>
+    <p class="fine">AI transcription is an approximation. Gamakas are simplified to the swara they land on — please check the result against the recording.</p>
+  </section>
+
+  <!-- ===== HISTORY ===== -->
+  <section id="historyCard" class="card no-print" hidden aria-label="Recent notations">
+    <div class="hist-head"><h2>Your recent notations</h2><button type="button" class="link-btn" id="clearHistory">Clear all</button></div>
+    <div id="historyList"></div>
+    <p class="fine">Saved only on this device.</p>
   </section>
 
   <!-- ===== RESULTS ===== -->
   <section id="results" class="card" hidden aria-live="polite">
+    <div class="print-only" id="printMeta">Swaralayam · Carnatic Notation</div>
     <div class="res-head">
       <div>
-        <p class="eyebrow" style="color:var(--gold-deep)">Swara notation</p>
+        <p class="eyebrow no-print" style="color:var(--gold-deep)">Swara notation</p>
         <h2 id="resTitle">Notation</h2>
         <div class="chips" id="chips"></div>
       </div>
       <button type="button" class="btn dark no-print" id="newBtn">＋ New transcription</button>
     </div>
 
+    <div id="resScale" class="scale" hidden></div>
+
+    <div id="resListen" class="listen no-print" hidden>
+      <span class="k">Listen</span>
+      <audio id="resAudio" controls preload="metadata"></audio>
+      <a id="resYt" href="#" target="_blank" rel="noopener" hidden>Open the video ↗</a>
+    </div>
+
     <div class="toolbar no-print" role="toolbar" aria-label="Notation actions">
-      <button type="button" class="btn ghost sm" id="copyBtn">📋 Copy</button>
-      <button type="button" class="btn ghost sm" id="dlBtn">⬇ Download .txt</button>
-      <button type="button" class="btn ghost sm" id="printBtn">🖨 Print / PDF</button>
-      <span class="sep" aria-hidden="true"></span>
-      <span class="tr" aria-label="Transpose pitch">
-        <button type="button" class="btn ghost sm" id="trDown" aria-label="Lower sruthi by one semitone">−</button>
-        <span class="lbl" id="trLabel"></span>
-        <button type="button" class="btn ghost sm" id="trUp" aria-label="Raise sruthi by one semitone">+</button>
-        <button type="button" class="btn ghost sm" id="trReset" title="Back to original sruthi">↺</button>
-      </span>
-      <label class="chk"><input type="checkbox" id="westernToggle"> Western pitch</label>
+      <div class="tb-row">
+        <button type="button" class="btn ghost sm" id="copyBtn">📋 Copy</button>
+        <button type="button" class="btn ghost sm" id="dlBtn">⬇ Download .txt</button>
+        <button type="button" class="btn ghost sm" id="printBtn">🖨 Print / PDF</button>
+        <button type="button" class="btn ghost sm" id="shareBtn" hidden>↗ Share</button>
+      </div>
+      <div class="tb-row">
+        <span class="tb-group tr"><span class="tb-label">Sruthi</span>
+          <button type="button" class="btn ghost sm" id="trDown" aria-label="Lower sruthi by one semitone">−</button>
+          <span class="lbl" id="trLabel"></span>
+          <button type="button" class="btn ghost sm" id="trUp" aria-label="Raise sruthi by one semitone">+</button>
+          <button type="button" class="btn ghost sm" id="trReset" title="Back to the original sruthi" aria-label="Reset sruthi">↺</button>
+        </span>
+        <label class="chk"><input type="checkbox" id="westernToggle"> Western pitch</label>
+      </div>
+      <div class="tb-row">
+        <span class="tb-group"><span class="tb-label">Style</span>
+          <span class="seg mini" id="styleSeg" role="group" aria-label="Notation style">
+            <button type="button" data-style="full" aria-pressed="true">Sa Ri Ga</button>
+            <button type="button" data-style="short" aria-pressed="false">S R G</button>
+          </span>
+        </span>
+        <span class="tb-group"><span class="tb-label">Size</span>
+          <button type="button" class="btn ghost sm" id="sizeDown" aria-label="Smaller text">A−</button>
+          <button type="button" class="btn ghost sm" id="sizeUp" aria-label="Larger text">A+</button>
+        </span>
+        <label class="chk"><input type="checkbox" id="sahityaToggle" checked> Lyrics</label>
+      </div>
     </div>
     <div class="legend no-print">
       <span class="m">.Sa = Mandra</span><span>Sa = Madhya</span><span class="t">Sa. = Tara</span>
-      <span>| anga divider</span><span>|| avartanam end</span><span>, = hold</span>
+      <span>| anga divider</span><span>|| avartanam end</span><span>, = hold</span><span>(Ga Ma) = two swaras in one beat</span>
     </div>
 
     <div id="notation"></div>
+    <div id="qaBox" class="qa" hidden></div>
     <div id="notesBox" class="notes" hidden></div>
-    <p class="disclaimer">Transposing moves the Sruthi (the pitch of Sa); the swara names stay the same and the Western pitch row follows. Generated by AI — verify against the recording.</p>
+    <p class="fine">Transposing changes the Sruthi (the pitch of Sa); swara names stay the same. AI-generated — please verify against the recording.</p>
   </section>
 </main>
 
-<footer class="no-print">Swaralayam · Carnatic AI Transcriber · Payment flow shown here is a simulation</footer>
+<footer class="no-print">© Swaralayam · Carnatic AI Transcriber</footer>
 
 <!-- ===== PROCESSING OVERLAY ===== -->
 <div id="processing" class="overlay" hidden role="alertdialog" aria-modal="true" aria-labelledby="procTitle" aria-describedby="procMsg">
@@ -389,7 +463,7 @@ footer{position:relative;z-index:1;text-align:center;padding:18px 20px 40px;colo
       <li data-step="3"><span class="dot">4</span>Rendering Notation</li>
     </ul>
     <div class="bar-track"><div class="bar-fill" id="procBar"></div></div>
-    <p class="small">Elapsed <span id="elapsed">0s</span> · long recordings can take a minute or two</p>
+    <p class="small">Elapsed <span id="elapsed">0s</span> · longer recordings can take a minute or two</p>
     <button type="button" class="btn ghost sm" id="cancelBtn" style="margin-top:12px">Cancel (your payment is kept)</button>
   </div>
 </div>
@@ -401,7 +475,7 @@ footer{position:relative;z-index:1;text-align:center;padding:18px 20px 40px;colo
       <div><p class="eyebrow">Secure checkout</p><h2 id="payTitle">Complete payment</h2></div>
       <button type="button" class="x" id="payClose" aria-label="Close payment">×</button>
     </div>
-    <div class="sim-banner">SIMULATION MODE — no real money moves. Never enter real card details here.</div>
+    <div class="sim-banner">DEMO PAYMENT — no money is charged. Please don't enter real card details.</div>
     <div class="modal-body">
       <div class="order">
         <div class="row"><span>Swaralayam notation × 1</span><span id="ordAmt">LKR 100.00</span></div>
@@ -438,7 +512,7 @@ footer{position:relative;z-index:1;text-align:center;padding:18px 20px 40px;colo
         <div class="mpanel" data-pmp="bank" hidden>
           <div class="field"><label for="bankSel">Select your bank</label>
             <select id="bankSel"><option>Bank of Ceylon</option><option>People's Bank</option><option>Commercial Bank</option><option>Sampath Bank</option><option>Hatton National Bank</option><option>Seylan Bank</option><option>NDB Bank</option></select></div>
-          <span class="hint" style="font-size:.82rem;color:var(--muted)">You would normally be redirected to your bank's net-banking page to approve the payment.</span>
+          <span class="hint" style="font-size:.82rem;color:var(--muted)">You would normally be redirected to your bank's page to approve the payment.</span>
         </div>
 
         <button type="button" class="btn primary block" id="payNow">Pay LKR 100.00</button>
@@ -469,7 +543,7 @@ footer{position:relative;z-index:1;text-align:center;padding:18px 20px 40px;colo
   </div>
 </div>
 
-<!-- ===== SETTINGS DRAWER ===== -->
+<!-- ===== SETTINGS DRAWER (owner only: open the page with ?setup=1) ===== -->
 <div id="scrim" class="scrim"></div>
 <aside id="drawer" class="drawer" role="dialog" aria-modal="true" aria-labelledby="drawerTitle" aria-hidden="true">
   <div class="modal-head">
@@ -479,8 +553,8 @@ footer{position:relative;z-index:1;text-align:center;padding:18px 20px 40px;colo
   <div class="body">
     <div class="field">
       <label for="endpointInput">Cloudflare Worker proxy endpoint</label>
-      <input id="endpointInput" type="url" placeholder="https://swaralayam-proxy.YOUR-SUBDOMAIN.workers.dev" autocomplete="off" inputmode="url" spellcheck="false">
-      <span class="hint">Paste the Worker URL. <code>/api/transcribe</code> is added automatically. Saved only in this browser.</span>
+      <input id="endpointInput" type="url" placeholder="https://swaralayam-api.YOUR-SUBDOMAIN.workers.dev" autocomplete="off" inputmode="url" spellcheck="false">
+      <span class="hint"><code>/api/transcribe</code> is added automatically. Saved only in this browser.</span>
     </div>
     <div style="display:flex;gap:8px;flex-wrap:wrap">
       <button type="button" class="btn dark" id="saveEndpoint">Save</button>
@@ -488,16 +562,6 @@ footer{position:relative;z-index:1;text-align:center;padding:18px 20px 40px;colo
       <button type="button" class="btn ghost" id="clearEndpoint">Clear</button>
     </div>
     <div id="testResult" class="test-out" hidden></div>
-    <div>
-      <p class="eyebrow" style="color:var(--gold-deep);margin-bottom:6px">Why a proxy?</p>
-      <p style="margin:0;font-size:.88rem;color:#4a3b3d">GitHub Pages is public, so a Gemini key placed in this page would be visible to everyone. Requests go to your Worker, which adds the secret key server-side and forwards them to Google.</p>
-    </div>
-    <ol>
-      <li>Create a Worker and paste <code>worker.js</code>.</li>
-      <li>Add the secret <code>GEMINI_API_KEY</code>.</li>
-      <li>Set <code>ALLOWED_ORIGINS</code> to your <code>https://&lt;user&gt;.github.io</code>.</li>
-      <li>Paste the Worker URL above and press Test connection.</li>
-    </ol>
   </div>
 </aside>
 
@@ -511,26 +575,57 @@ footer{position:relative;z-index:1;text-align:center;padding:18px 20px 40px;colo
    CONFIG — the only values you may want to edit
    ===================================================================== */
 const CONFIG = {
-  DEFAULT_WORKER_URL: 'https://swaralayam-api.varsikanofficial.workers.dev',   // your Cloudflare Worker (visitors use this automatically). Open the page with ?setup=1 to reveal Settings.
+  DEFAULT_WORKER_URL: 'https://swaralayam-api.varsikanofficial.workers.dev',   // your Cloudflare Worker. Open the page with ?setup=1 to reveal Settings.
   PRICE_LKR: 100,
   PAYMENT_MODE: 'simulation',      // 'simulation' | 'live' (live requires wiring liveCharge() below)
   MAX_UPLOAD_MB: 14,               // base64 inflates ~33%; Gemini inline request limit is ~20 MB
   REQUEST_TIMEOUT_MS: 180000,
+  HISTORY_MAX: 8,
   KEY_ENDPOINT: 'swaralayam.endpoint',
-  KEY_CREDIT: 'swaralayam.credit'
+  KEY_CREDIT: 'swaralayam.credit',
+  KEY_HISTORY: 'swaralayam.history',
+  KEY_PARAMS: 'swaralayam.params',
+  KEY_VIEW: 'swaralayam.view'
 };
 
 /* =====================================================================
    Static musical data
    ===================================================================== */
-const RAGAS = ['Auto-Detect','Mayamalavagowla','Shankarabharanam','Kalyani','Kharaharapriya','Hanumatodi','Bhairavi','Kambhoji','Mohanam','Hamsadhwani','Sri','Madhyamavati','Charukesi','Natabhairavi','Abhogi','Keeravani'];
-const TALAMS = [
-  {id:'auto',         label:'Auto-Detect',            hint:'identify the talam from the recording'},
-  {id:'Adi',          label:'Adi (Chatusra Triputa)', hint:'8 aksharas grouped 4 | 2 | 2'},
-  {id:'Rupakam',      label:'Rupakam',                hint:'6 aksharas grouped 2 | 4'},
-  {id:'Misra Chapu',  label:'Misra Chapu',            hint:'7 aksharas grouped 3 | 2 | 2'},
-  {id:'Khanda Chapu', label:'Khanda Chapu',           hint:'5 aksharas grouped 2 | 3'}
+const RAGAS = [
+  { n:'Mayamalavagowla',  m:'15th melakarta',               a:'Sa Ri1 Ga3 Ma1 Pa Dha1 Ni3 Sa.', v:'Sa. Ni3 Dha1 Pa Ma1 Ga3 Ri1 Sa' },
+  { n:'Shankarabharanam', m:'29th melakarta',               a:'Sa Ri2 Ga3 Ma1 Pa Dha2 Ni3 Sa.', v:'Sa. Ni3 Dha2 Pa Ma1 Ga3 Ri2 Sa' },
+  { n:'Kalyani',          m:'65th melakarta',               a:'Sa Ri2 Ga3 Ma2 Pa Dha2 Ni3 Sa.', v:'Sa. Ni3 Dha2 Pa Ma2 Ga3 Ri2 Sa' },
+  { n:'Kharaharapriya',   m:'22nd melakarta',               a:'Sa Ri2 Ga2 Ma1 Pa Dha2 Ni2 Sa.', v:'Sa. Ni2 Dha2 Pa Ma1 Ga2 Ri2 Sa' },
+  { n:'Hanumatodi',       m:'8th melakarta',                a:'Sa Ri1 Ga2 Ma1 Pa Dha1 Ni2 Sa.', v:'Sa. Ni2 Dha1 Pa Ma1 Ga2 Ri1 Sa' },
+  { n:'Natabhairavi',     m:'20th melakarta',               a:'Sa Ri2 Ga2 Ma1 Pa Dha1 Ni2 Sa.', v:'Sa. Ni2 Dha1 Pa Ma1 Ga2 Ri2 Sa' },
+  { n:'Charukesi',        m:'26th melakarta',               a:'Sa Ri2 Ga3 Ma1 Pa Dha1 Ni2 Sa.', v:'Sa. Ni2 Dha1 Pa Ma1 Ga3 Ri2 Sa' },
+  { n:'Keeravani',        m:'21st melakarta',               a:'Sa Ri2 Ga2 Ma1 Pa Dha1 Ni3 Sa.', v:'Sa. Ni3 Dha1 Pa Ma1 Ga2 Ri2 Sa' },
+  { n:'Bhairavi',         m:'janya of Natabhairavi',        a:'Sa Ri2 Ga2 Ma1 Pa Dha1 Ni2 Sa.', v:'Sa. Ni2 Dha1 Pa Ma1 Ga2 Ri2 Sa' },
+  { n:'Kambhoji',         m:'janya of Harikambhoji',        a:'Sa Ri2 Ga3 Ma1 Pa Dha2 Sa.',     v:'Sa. Ni2 Dha2 Pa Ma1 Ga3 Ri2 Sa' },
+  { n:'Mohanam',          m:'janya of Harikambhoji',        a:'Sa Ri2 Ga3 Pa Dha2 Sa.',         v:'Sa. Dha2 Pa Ga3 Ri2 Sa' },
+  { n:'Hamsadhwani',      m:'janya of Shankarabharanam',    a:'Sa Ri2 Ga3 Pa Ni3 Sa.',          v:'Sa. Ni3 Pa Ga3 Ri2 Sa' },
+  { n:'Sri',              m:'janya of Kharaharapriya',      a:'Sa Ri2 Ma1 Pa Ni2 Sa.',          v:'Sa. Ni2 Pa Ma1 Ri2 Ga2 Ri2 Sa' },
+  { n:'Madhyamavati',     m:'janya of Kharaharapriya',      a:'Sa Ri2 Ma1 Pa Ni2 Sa.',          v:'Sa. Ni2 Pa Ma1 Ri2 Sa' },
+  { n:'Abhogi',           m:'janya of Kharaharapriya',      a:'Sa Ri2 Ga2 Ma1 Dha2 Sa.',        v:'Sa. Dha2 Ma1 Ga2 Ri2 Sa' }
 ];
+const ragaInfo = n => RAGAS.find(r => r.n === n) || null;
+
+const TALAMS = [
+  { id:'auto',         label:'Auto-Detect',            total:0, angas:[],      hint:'identify the talam from the recording' },
+  { id:'Adi',          label:'Adi (Chatusra Triputa)', total:8, angas:[4,2,2], hint:'8 aksharas grouped 4 | 2 | 2' },
+  { id:'Rupakam',      label:'Rupakam',                total:6, angas:[2,4],   hint:'6 aksharas grouped 2 | 4' },
+  { id:'Misra Chapu',  label:'Misra Chapu',            total:7, angas:[3,2,2], hint:'7 aksharas grouped 3 | 2 | 2' },
+  { id:'Khanda Chapu', label:'Khanda Chapu',           total:5, angas:[2,3],   hint:'5 aksharas grouped 2 | 3' }
+];
+function talamInfo(name){
+  const s = String(name || '').toLowerCase();
+  if (/khanda/.test(s)) return TALAMS[4];
+  if (/misra/.test(s)) return TALAMS[3];
+  if (/rupak/.test(s)) return TALAMS[2];
+  if (/\badi\b|chatusra/.test(s)) return TALAMS[1];
+  return null;
+}
+
 const NOTE_NAMES = ['C','C#','D','D#','E','F','F#','G','G#','A','A#','B'];
 const KATTAI = ['1 Kattai','1.5 Kattai','2 Kattai','2.5 Kattai','3 Kattai','4 Kattai','4.5 Kattai','5 Kattai','5.5 Kattai','6 Kattai','6.5 Kattai','7 Kattai'];
 const sruthiLabel = i => `${KATTAI[i]} / ${NOTE_NAMES[i]}`;
@@ -538,6 +633,7 @@ const sruthiLabel = i => `${KATTAI[i]} / ${NOTE_NAMES[i]}`;
 const SWARA_SEMI = {Sa:0,Ri1:1,Ri2:2,Ri3:3,Ga1:2,Ga2:3,Ga3:4,Ma1:5,Ma2:6,Pa:7,Dha1:8,Dha2:9,Dha3:10,Ni1:9,Ni2:10,Ni3:11};
 const DEFAULT_VAR = {Sa:'',Ri:'2',Ga:'3',Ma:'1',Pa:'',Dha:'2',Ni:'3'};
 const LETTER_MAP = {S:'Sa',R:'Ri',G:'Ga',M:'Ma',P:'Pa',D:'Dha',N:'Ni',SA:'Sa',RI:'Ri',GA:'Ga',MA:'Ma',PA:'Pa',DHA:'Dha',DA:'Dha',NI:'Ni'};
+const SHORT = {Sa:'S',Ri:'R',Ga:'G',Ma:'M',Pa:'P',Dha:'D',Ni:'N'};
 
 /* =====================================================================
    Helpers
@@ -549,9 +645,10 @@ const sleep = ms => new Promise(r => setTimeout(r, ms));
 const fmtLKR = n => `LKR ${Number(n).toFixed(2)}`;
 const store = {
   get(k, s = localStorage){ try { return s.getItem(k); } catch { return null; } },
-  set(k, v, s = localStorage){ try { s.setItem(k, v); } catch {} },
+  set(k, v, s = localStorage){ try { s.setItem(k, v); return true; } catch { return false; } },
   del(k, s = localStorage){ try { s.removeItem(k); } catch {} }
 };
+const readJson = (k, fallback, s) => { try { const v = JSON.parse(store.get(k, s) || 'null'); return v == null ? fallback : v; } catch { return fallback; } };
 
 let toastTimer = 0;
 function toast(msg, bad = false){
@@ -580,17 +677,20 @@ document.addEventListener('keydown', e => {
 /* =====================================================================
    State
    ===================================================================== */
-function loadCredit(){
-  try { const c = JSON.parse(store.get(CONFIG.KEY_CREDIT, sessionStorage) || 'null'); return c && typeof c.receipt === 'string' ? c : null; } catch { return null; }
-}
+const loadCredit = () => { const c = readJson(CONFIG.KEY_CREDIT, null, sessionStorage); return c && typeof c.receipt === 'string' ? c : null; };
+const VIEW_DEFAULT = { style: 'full', lyrics: true, size: 2, western: false };
+const SIZES = [14, 16, 18, 21, 24];
 const state = {
   mode: 'file', file: null, objectUrl: null,
-  result: null, sruthiBase: 0, sruthiIdx: 0, showWestern: false,
-  credit: loadCredit(), busy: false, abort: null
+  result: null, sruthiBase: 0, sruthiIdx: 0,
+  view: Object.assign({}, VIEW_DEFAULT, readJson(CONFIG.KEY_VIEW, {})),
+  credit: loadCredit(), busy: false, abort: null, fromHistory: false, ytLink: ''
 };
+state.view.size = Math.min(SIZES.length - 1, Math.max(0, Number(state.view.size) || 0));
+const saveView = () => store.set(CONFIG.KEY_VIEW, JSON.stringify(state.view));
 
 /* =====================================================================
-   Endpoint (Cloudflare Worker) handling
+   Endpoint (Cloudflare Worker)
    ===================================================================== */
 function normalizeEndpoint(raw){
   let v = (raw || '').trim(); if (!v) return '';
@@ -607,27 +707,42 @@ const getEndpoint = () => normalizeEndpoint(PUBLIC_MODE ? CONFIG.DEFAULT_WORKER_
 const healthUrl = ep => ep.replace(/\/api\/transcribe$/, '') + '/api/health';
 
 /* =====================================================================
-   Populate selects & UI wiring
+   Setup of selects / scale hint / persisted parameters
    ===================================================================== */
 function fillSelects(){
-  $('#ragaSel').append(...RAGAS.map(r => new Option(r, r === 'Auto-Detect' ? 'auto' : r)));
+  $('#ragaSel').append(new Option('Auto-Detect', 'auto'), ...RAGAS.map(r => new Option(r.n, r.n)));
   $('#talamSel').append(...TALAMS.map(t => new Option(t.label, t.id)));
   const s = $('#sruthiSel');
   s.append(new Option('Auto-Detect (estimate)', 'auto'));
   KATTAI.forEach((_, i) => s.append(new Option(sruthiLabel(i), String(i))));
   $('#maxMb').textContent = CONFIG.MAX_UPLOAD_MB;
   $('#priceBig').textContent = `LKR ${CONFIG.PRICE_LKR}`;
+  const saved = readJson(CONFIG.KEY_PARAMS, {});
+  [['ragaSel','raga'],['talamSel','talam'],['sruthiSel','sruthi']].forEach(([id, k]) => {
+    const sel = $('#' + id); if (saved[k] && [...sel.options].some(o => o.value === saved[k])) sel.value = saved[k];
+    sel.addEventListener('change', () => { saveParams(); if (id === 'ragaSel') showScaleHint(); });
+  });
+  showScaleHint();
 }
+const saveParams = () => store.set(CONFIG.KEY_PARAMS, JSON.stringify({ raga: $('#ragaSel').value, talam: $('#talamSel').value, sruthi: $('#sruthiSel').value }));
+function scaleBox(box, info){
+  box.replaceChildren();
+  if (!info) { box.hidden = true; return; }
+  box.append(el('div', 't', info.n + ' · ' + info.m));
+  [['Arohanam', info.a], ['Avarohanam', info.v]].forEach(([k, v]) => { const r = el('div', 'row'); r.append(el('span', 'k', k)); r.append(el('code', null, v)); box.append(r); });
+  box.hidden = false;
+}
+function showScaleHint(){ scaleBox($('#scaleHint'), ragaInfo($('#ragaSel').value)); }
 
 function refreshUI(){
   const ep = getEndpoint();
-  $('#setupBanner').hidden = !!ep;
+  $('#setupBanner').hidden = !!ep || PUBLIC_MODE;
   const c = state.credit;
   $('#creditPill').hidden = !c;
   if (c) $('#creditReceipt').textContent = `Receipt ${c.receipt}`;
   const b = $('#payBtn');
   b.disabled = state.busy;
-  b.textContent = c ? '🎼 Transcribe now (paid)' : `Pay LKR ${CONFIG.PRICE_LKR} & Transcribe`;
+  b.textContent = c ? '🎼 Transcribe now' : `Pay LKR ${CONFIG.PRICE_LKR} & Transcribe`;
 }
 function showError(msg){ const b = $('#errorBox'); b.textContent = msg; b.hidden = false; }
 function hideError(){ $('#errorBox').hidden = true; }
@@ -640,6 +755,21 @@ $$('.seg [data-mode]').forEach(btn => btn.addEventListener('click', () => {
   $('#panelLink').hidden = state.mode !== 'link';
 }));
 
+/* ---- YouTube preview ---- */
+function youTubeId(u){
+  const m = /(?:youtube\.com\/(?:watch\?(?:.*&)?v=|shorts\/|embed\/|live\/)|youtu\.be\/)([\w-]{11})/i.exec(u || '');
+  return m ? m[1] : '';
+}
+const youTubeUrl = u => { const id = youTubeId(u); return id ? `https://www.youtube.com/watch?v=${id}` : ''; };
+$('#linkInput').addEventListener('input', e => {
+  const v = e.target.value.trim(), id = youTubeId(v), box = $('#ytPrev');
+  if (id) { $('#ytThumb').src = `https://i.ytimg.com/vi/${id}/mqdefault.jpg`; $('#ytText').textContent = 'YouTube video detected — it will be analysed directly.'; box.hidden = false; }
+  else if (/^https?:\/\/\S+\.\S+/.test(v)) { $('#ytThumb').removeAttribute('src'); $('#ytText').textContent = 'Direct audio link — the file will be downloaded in your browser.'; box.hidden = false; }
+  else box.hidden = true;
+});
+$('#ytThumb').addEventListener('error', () => { $('#ytThumb').style.visibility = 'hidden'; });
+$('#ytThumb').addEventListener('load', () => { $('#ytThumb').style.visibility = 'visible'; });
+
 /* ---- file handling ---- */
 const MIME_BY_EXT = {mp3:'audio/mp3',wav:'audio/wav',aac:'audio/aac',ogg:'audio/ogg',flac:'audio/flac',aiff:'audio/aiff',aif:'audio/aiff',m4a:'audio/mp4'};
 function guessMime(name, type){
@@ -650,18 +780,21 @@ function guessMime(name, type){
   return type && type.startsWith('audio/') ? type : '';
 }
 const fmtBytes = b => b > 1048576 ? (b / 1048576).toFixed(1) + ' MB' : Math.max(1, Math.round(b / 1024)) + ' KB';
+const fmtDur = s => isFinite(s) && s > 0 ? `${Math.floor(s / 60)}:${String(Math.round(s % 60)).padStart(2, '0')}` : '';
 
 function setFile(file){
   hideError();
   if (!file) return;
   const mime = guessMime(file.name, file.type);
   if (!mime) { showError('That does not look like an audio file. Please choose MP3, WAV, FLAC, AAC, OGG or M4A.'); return; }
-  if (file.size > CONFIG.MAX_UPLOAD_MB * 1048576) { showError(`File is ${fmtBytes(file.size)}. The limit is ${CONFIG.MAX_UPLOAD_MB} MB — trim the clip or export a smaller MP3.`); return; }
+  if (file.size > CONFIG.MAX_UPLOAD_MB * 1048576) { showError(`This file is ${fmtBytes(file.size)}. The limit is ${CONFIG.MAX_UPLOAD_MB} MB — trim the clip or export a smaller MP3.`); return; }
   clearFile();
   state.file = file; state.objectUrl = URL.createObjectURL(file);
   $('#fileName').textContent = file.name;
   $('#fileMeta').textContent = `${fmtBytes(file.size)} · ${mime}`;
-  $('#filePreview').src = state.objectUrl;
+  const a = $('#filePreview');
+  a.onloadedmetadata = () => { const d = fmtDur(a.duration); if (d) $('#fileMeta').textContent = `${fmtBytes(file.size)} · ${d} · ${mime}`; };
+  a.src = state.objectUrl;
   $('#fileCard').hidden = false; $('#dropzone').hidden = true;
 }
 function clearFile(){
@@ -679,7 +812,7 @@ dz.addEventListener('drop', e => setFile(e.dataTransfer.files && e.dataTransfer.
 $('#fileInput').addEventListener('change', e => setFile(e.target.files[0]));
 $('#fileRemove').addEventListener('click', clearFile);
 
-/* ---- settings drawer ---- */
+/* ---- settings drawer (owner only) ---- */
 const drawer = $('#drawer'), scrim = $('#scrim');
 function openDrawer(){
   $('#endpointInput').value = store.get(CONFIG.KEY_ENDPOINT) || CONFIG.DEFAULT_WORKER_URL || '';
@@ -694,20 +827,20 @@ $('#closeDrawer').addEventListener('click', closeDrawer);
 scrim.addEventListener('click', closeDrawer);
 drawer.addEventListener('dialog-escape', closeDrawer);
 $('#saveEndpoint').addEventListener('click', () => {
-  const raw = $('#endpointInput').value;
-  const n = normalizeEndpoint(raw);
+  const n = normalizeEndpoint($('#endpointInput').value);
   if (!n) { toast('Enter a valid https:// Worker URL.', true); return; }
   store.set(CONFIG.KEY_ENDPOINT, n); $('#endpointInput').value = n; refreshUI(); checkConnection(); toast('Endpoint saved.');
 });
 $('#clearEndpoint').addEventListener('click', () => { store.del(CONFIG.KEY_ENDPOINT); $('#endpointInput').value = ''; refreshUI(); checkConnection(); toast('Endpoint cleared.'); });
-/* ---- connection probe (drives the header badge and the Test button) ---- */
+
+/* ---- connection probe (owner badge + Test button) ---- */
 async function probe(ep){
   const ac = new AbortController(); const t = setTimeout(() => ac.abort(), 9000);
   try {
     const r = await fetch(healthUrl(ep), { signal: ac.signal });
     let j = null; try { j = await r.json(); } catch {}
-    if (r.status === 403) return { state: 'bad', pill: 'Origin blocked', msg: 'The Worker rejected this website. Set ALLOWED_ORIGINS to exactly ' + location.origin + ' (no path, no trailing slash) and redeploy.' };
-    if (!r.ok || !j) return { state: 'bad', pill: 'Not a Swaralayam proxy', msg: `The URL answered with HTTP ${r.status}, but not like the Swaralayam Worker. Check you pasted the Worker URL and deployed worker.js.` };
+    if (r.status === 403) return { state: 'bad', pill: 'Origin blocked', msg: 'The Worker rejected this website. Set ALLOWED_ORIGINS to exactly ' + location.origin + ' and redeploy.' };
+    if (!r.ok || !j) return { state: 'bad', pill: 'Not a Swaralayam proxy', msg: `The URL answered with HTTP ${r.status}, but not like the Swaralayam Worker.` };
     if (!j.keyConfigured) return { state: 'warn', pill: 'Key missing', msg: 'Proxy reachable, but the GEMINI_API_KEY secret is missing on the Worker.' };
     return { state: 'ok', pill: 'Connected · ' + j.model, msg: `✓ Proxy reachable · API key configured · model ${j.model}` };
   } catch (err) {
@@ -715,9 +848,7 @@ async function probe(ep){
   } finally { clearTimeout(t); }
 }
 let connSeq = 0;
-function setConn(state, text, title){
-  const b = $('#connStatus'); b.dataset.state = state; $('#connText').textContent = text; b.title = title || 'Proxy connection status';
-}
+function setConn(st, text, title){ const b = $('#connStatus'); b.dataset.state = st; $('#connText').textContent = text; b.title = title || 'Proxy connection status'; }
 async function checkConnection(){
   const ep = getEndpoint(), seq = ++connSeq;
   if (!ep) { setConn('none', 'Not connected', 'Add your Worker URL in Settings'); return; }
@@ -760,8 +891,6 @@ $$('[data-pm]').forEach(b => b.addEventListener('click', () => {
   $$('[data-pm]').forEach(x => x.setAttribute('aria-selected', String(x === b)));
   $$('[data-pmp]').forEach(p => { p.hidden = p.dataset.pmp !== payMethod; });
 }));
-
-/* input masks */
 $('#cardNumber').addEventListener('input', e => { e.target.value = e.target.value.replace(/\D/g, '').slice(0, 19).replace(/(.{4})/g, '$1 ').trim(); });
 $('#cardExp').addEventListener('input', e => { let v = e.target.value.replace(/\D/g, '').slice(0, 4); if (v.length > 2) v = v.slice(0, 2) + '/' + v.slice(2); e.target.value = v; });
 $('#cardCvv').addEventListener('input', e => { e.target.value = e.target.value.replace(/\D/g, '').slice(0, 4); });
@@ -921,10 +1050,10 @@ $('#cancelBtn').addEventListener('click', () => { if (state.abort) state.abort.a
 const SYSTEM_PROMPT = [
   'You are an expert Carnatic musicologist and music transcriber. You listen to a recording and write it as formal Carnatic swara notation.',
   'Follow these rules exactly:',
-  '1. Use full swara names separated by single spaces: Sa Ri Ga Ma Pa Dha Ni, with variant numbers where they exist: Ri1 Ri2 Ri3, Ga1 Ga2 Ga3, Ma1 Ma2, Dha1 Dha2 Dha3, Ni1 Ni2 Ni3. Sa and Pa never take a number. Use the correct variants for the raga (for example Mayamalavagowla = Sa Ri1 Ga3 Ma1 Pa Dha1 Ni3 Sa.).',
+  '1. Use full swara names separated by single spaces: Sa Ri Ga Ma Pa Dha Ni, with variant numbers where they exist: Ri1 Ri2 Ri3, Ga1 Ga2 Ga3, Ma1 Ma2, Dha1 Dha2 Dha3, Ni1 Ni2 Ni3. Sa and Pa never take a number. Use the correct variants for the raga (for example Mayamalavagowla = Sa Ri1 Ga3 Ma1 Pa Dha1 Ni3 Sa.). When a reference scale is given, only use swaras from that scale unless the recording clearly uses a foreign note (a bhashanga swara), which you should mention in notes.',
   '2. Mark the sthayi with dots: Mandra (lower octave) = dot BEFORE the swara, e.g. .Pa; Madhya (middle) = no dot, e.g. Pa; Tara (upper octave) = dot AFTER the swara, e.g. Sa.; Ati-tara = two dots after, e.g. Ri2..',
   '3. Each token (a swara or a comma) occupies exactly one akshara. A comma "," means the previous swara is held for one more akshara. When two swaras share one akshara (faster speed), wrap them in parentheses, e.g. (Ga3 Ma1).',
-  '4. Beat dividers: put "|" between the angas of the talam and "||" at the end of every avartanam. One avartanam per entry in the avartanams array, with exactly as many aksharas as the talam has. Separate every token and divider with spaces.',
+  '4. Beat dividers: put "|" between the angas of the talam and "||" at the end of every avartanam. One avartanam per entry in the avartanams array, with exactly as many aksharas as the talam has. Count your aksharas for every avartanam before answering. Separate every token and divider with spaces.',
   '5. Organise the piece into sections named Pallavi, Anupallavi and Charanam (use "Charanam 2" etc. for further charanams, and "Chittaswaram" if present). Omit sections the piece does not have. Transcribe the first complete rendition of each section; do not repeat repeated passages — mention repeats in notes.',
   '6. In "sahitya" write the lyric of that avartanam in Roman transliteration, or an empty string if it is instrumental or unintelligible. Never invent lyrics.',
   '7. Transcribe the principal melodic line (voice or lead instrument) relative to the given Sruthi (Sa). Simplify gamakas to the swara they land on.',
@@ -947,21 +1076,16 @@ const RESPONSE_SCHEMA = {
 };
 
 function readParams(){
-  return {
-    mode: state.mode, file: state.file, link: $('#linkInput').value.trim(),
-    raga: $('#ragaSel').value, talam: $('#talamSel').value, sruthi: $('#sruthiSel').value
-  };
+  return { mode: state.mode, file: state.file, link: $('#linkInput').value.trim(),
+    raga: $('#ragaSel').value, talam: $('#talamSel').value, sruthi: $('#sruthiSel').value };
 }
 function buildUserPrompt(p){
-  const talam = TALAMS.find(t => t.id === p.talam);
+  const talam = TALAMS.find(t => t.id === p.talam), info = ragaInfo(p.raga);
   const raga = p.raga === 'auto' ? 'Unknown — identify the raga from the recording.' : p.raga;
-  const tal = p.talam === 'auto' ? 'Unknown — identify the talam from the recording.' : `${talam.label} (${talam.hint}).`;
+  const tal = p.talam === 'auto' ? 'Unknown — identify the talam from the recording.' : `${talam.label} (${talam.hint}). Every avartanam must contain exactly ${talam.total} aksharas.`;
   const sru = p.sruthi === 'auto' ? 'Unknown — estimate it.' : `Sa = ${NOTE_NAMES[+p.sruthi]} (${KATTAI[+p.sruthi]}).`;
-  return `Transcribe the attached recording into Carnatic swara notation.\nRaga: ${raga}\nTalam: ${tal}\nSruthi: ${sru}`;
-}
-function youTubeUrl(u){
-  const m = /(?:youtube\.com\/(?:watch\?(?:.*&)?v=|shorts\/|embed\/|live\/)|youtu\.be\/)([\w-]{11})/i.exec(u);
-  return m ? `https://www.youtube.com/watch?v=${m[1]}` : '';
+  const scale = info ? `\nReference scale — Arohanam: ${info.a} | Avarohanam: ${info.v}` : '';
+  return `Transcribe the attached recording into Carnatic swara notation.\nRaga: ${raga}${scale}\nTalam: ${tal}\nSruthi: ${sru}`;
 }
 const blobToBase64 = blob => new Promise((res, rej) => {
   const fr = new FileReader(); fr.onload = () => res(String(fr.result).split(',')[1] || ''); fr.onerror = () => rej(fr.error); fr.readAsDataURL(blob);
@@ -976,13 +1100,12 @@ async function prepareAudioPart(p, signal){
   let res;
   try { res = await fetch(p.link, { signal }); } catch (e) {
     if (e.name === 'AbortError') throw e;
-    throw new Error('That server does not allow downloads from a browser (CORS) or is unreachable. Download the audio and use the Upload tab instead.');
+    throw new Error('That website does not allow downloads from a browser (CORS) or is unreachable. Download the audio and use the Upload tab instead.');
   }
   if (!res.ok) throw new Error(`Could not download the audio (HTTP ${res.status}).`);
   const blob = await res.blob();
   if (blob.size > CONFIG.MAX_UPLOAD_MB * 1048576) throw new Error(`The audio is ${fmtBytes(blob.size)}; the limit is ${CONFIG.MAX_UPLOAD_MB} MB.`);
-  const name = new URL(p.link).pathname;
-  const mime = guessMime(name, blob.type);
+  const mime = guessMime(new URL(p.link).pathname, blob.type);
   if (!mime) throw new Error('The link did not return a supported audio file.');
   return { inlineData: { mimeType: mime, data: await blobToBase64(blob) } };
 }
@@ -991,7 +1114,7 @@ class ApiError extends Error { constructor(status, msg){ super(msg); this.status
 async function callProxy(body, signal){
   let res;
   try { res = await fetch(getEndpoint(), { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body), signal }); }
-  catch (e) { if (e.name === 'AbortError') throw e; throw new ApiError(0, 'Could not reach your proxy. Check the endpoint in Settings and that the Worker is deployed.'); }
+  catch (e) { if (e.name === 'AbortError') throw e; throw new ApiError(0, 'Could not reach the transcription service. Please check your connection and try again.'); }
   const text = await res.text(); let data = null; try { data = JSON.parse(text); } catch {}
   if (!res.ok) {
     const msg = (data && data.error && (data.error.message || data.error)) || text.slice(0, 240) || res.statusText;
@@ -1003,12 +1126,12 @@ function friendlyError(e){
   if (!(e instanceof ApiError)) return e.message || 'Something went wrong.';
   const m = e.message;
   if (e.status === 0) return m;
-  if (e.status === 403 && /origin/i.test(m)) return 'The proxy rejected this website. Add its origin (e.g. https://yourname.github.io) to ALLOWED_ORIGINS on the Worker.';
-  if (e.status === 429) return 'The Gemini quota is exhausted for the moment. Wait a minute and retry — your payment is kept.';
-  if (e.status === 404) return 'The model was not found. Set a current model in the Worker\'s GEMINI_MODEL variable. (' + m + ')';
+  if (e.status === 403) return 'The transcription service is not available from this website yet. Please contact the site owner.';
+  if (e.status === 429) return 'The service is busy right now. Please wait a minute and try again.';
+  if (e.status === 404) return 'The transcription service needs an update. Please contact the site owner.';
   if (e.status === 413) return 'The recording is too large for one request. Try a shorter clip.';
-  if (e.status === 500 && /GEMINI_API_KEY/.test(m)) return 'The Worker has no GEMINI_API_KEY secret yet.';
-  return `Gemini/proxy error ${e.status}: ${m}`;
+  if (e.status === 500 && /GEMINI_API_KEY/.test(m)) return 'The transcription service is not fully set up yet. Please contact the site owner.';
+  return `The transcription service reported an error (${e.status}). ${SETUP_MODE ? m : 'Please try again.'}`;
 }
 
 function tryParseJson(text){
@@ -1018,11 +1141,11 @@ function tryParseJson(text){
 }
 function parseGeminiResult(data, p){
   const cand = data && data.candidates && data.candidates[0];
-  if (!cand) { const br = data && data.promptFeedback && data.promptFeedback.blockReason; throw new Error(br ? `Gemini blocked the request (${br}).` : 'Gemini returned no result.'); }
+  if (!cand) { const br = data && data.promptFeedback && data.promptFeedback.blockReason; throw new Error(br ? `The request was blocked (${br}).` : 'No result was returned.'); }
   const text = ((cand.content && cand.content.parts) || []).map(x => x.text || '').join('').trim();
-  if (!text) throw new Error('Gemini returned an empty response' + (cand.finishReason ? ` (${cand.finishReason})` : '') + '.');
+  if (!text) throw new Error('The service returned an empty response' + (cand.finishReason ? ` (${cand.finishReason})` : '') + '. Please try again.');
   const obj = tryParseJson(text);
-  if (!obj) throw new Error(cand.finishReason === 'MAX_TOKENS' ? 'The notation was cut off because the piece is long. Try a shorter clip.' : 'Could not read the notation returned by Gemini. Please retry.');
+  if (!obj) throw new Error(cand.finishReason === 'MAX_TOKENS' ? 'The notation was cut off because the piece is long. Try a shorter clip.' : 'The notation could not be read. Please try again.');
   const sections = (Array.isArray(obj.sections) ? obj.sections : []).map(s => ({
     name: String(s.name || 'Section'),
     avartanams: (Array.isArray(s.avartanams) ? s.avartanams : []).filter(a => a && String(a.swara || '').trim()).map(a => ({ swara: String(a.swara), sahitya: String(a.sahitya || '') }))
@@ -1037,8 +1160,9 @@ function parseGeminiResult(data, p){
     if (m) { const i = NOTE_NAMES.indexOf(m[1] + (m[2] ? '#' : '')); if (i >= 0) base = i; }
     else if (k) { const i = KATTAI.findIndex(x => x.startsWith(k[1] + ' ')); if (i >= 0) base = i; }
   }
+  const talamName = String(obj.talam || '').trim() || (p.talam === 'auto' ? 'Unidentified' : (TALAMS.find(t => t.id === p.talam) || {}).label);
   return { title: String(obj.title || '').trim(), raga: String(obj.raga || '').trim() || (p.raga === 'auto' ? 'Unidentified' : p.raga),
-    talam: String(obj.talam || '').trim() || (p.talam === 'auto' ? 'Unidentified' : p.talam), confidence: String(obj.confidence || '').trim(),
+    talam: talamName, confidence: String(obj.confidence || '').trim(),
     notes, sections, sruthiBase: base, sruthiAuto: p.sruthi === 'auto' };
 }
 
@@ -1046,7 +1170,11 @@ function parseGeminiResult(data, p){
    Main transcription flow
    ===================================================================== */
 function validateInputs(){
-  if (state.mode === 'file') return state.file ? '' : 'Please choose an audio file to transcribe.';
+  if (state.mode === 'file') {
+    if (state.file) return '';
+    dz.classList.remove('shake'); void dz.offsetWidth; dz.classList.add('shake'); setTimeout(() => dz.classList.remove('shake'), 600);
+    return 'Please choose an audio file to transcribe.';
+  }
   const l = $('#linkInput').value.trim();
   if (!l) return 'Please paste a YouTube or audio link.';
   try { const u = new URL(l); if (!/^https?:$/.test(u.protocol)) throw 0; } catch { return 'That does not look like a valid link (it must start with https://).'; }
@@ -1069,24 +1197,27 @@ async function startTranscription(){
     };
     const data = await callProxy(body, ac.signal);
     const result = parseGeminiResult(data, p);
+    result.savedAt = new Date().toISOString();
 
     stepTimers.forEach(clearTimeout); stepTimers = [];
     for (const i of [1, 2, 3]) { setStep(i); await sleep(i === 3 ? 900 : 380); }
     $('#procBar').style.width = '100%'; $$('#stepList li').forEach(li => { li.classList.remove('active'); li.classList.add('done'); li.querySelector('.dot').textContent = '✓'; });
     await sleep(500);
 
-    state.result = result; state.sruthiBase = state.sruthiIdx = result.sruthiBase;
+    state.ytLink = p.mode === 'link' ? youTubeUrl(p.link) : '';
+    state.fromHistory = false;
     state.credit = null; store.del(CONFIG.KEY_CREDIT, sessionStorage);   // credit is consumed only on success
-    renderResult(); hideProcessing();
-    $('#inputCard').hidden = true; $('#results').hidden = false;
-    $('#results').scrollIntoView({ behavior: 'smooth', block: 'start' });
+    addHistory(result);
+    openResult(result);
+    hideProcessing();
   } catch (err) {
     hideProcessing();
     if (err && err.name === 'AbortError') {
-      toast(ac.signal.reason === 'timeout' ? 'The request timed out. Your payment is kept — try again.' : 'Cancelled. Your payment is kept.', ac.signal.reason === 'timeout');
-      if (ac.signal.reason === 'timeout') showError('The request timed out. Try a shorter clip. Your payment is kept, so a retry is free.');
+      const timedOut = ac.signal.reason === 'timeout';
+      toast(timedOut ? 'The request timed out. Your payment is kept — try again.' : 'Cancelled. Your payment is kept.', timedOut);
+      if (timedOut) showError('The request timed out. Try a shorter clip. Your payment is kept, so a retry is free.');
     } else {
-      const msg = friendlyError(err); showError(msg + (state.credit ? ' Your payment is kept — retrying costs nothing.' : '')); toast('Transcription failed.', true);
+      showError(friendlyError(err) + (state.credit ? ' Your payment is kept — trying again costs nothing.' : '')); toast('Transcription failed.', true);
     }
   } finally {
     clearTimeout(timeout); state.busy = false; state.abort = null; refreshUI();
@@ -1097,9 +1228,37 @@ $('#payBtn').addEventListener('click', () => {
   const err = validateInputs();
   if (err) { showError(err); return; }
   hideError();
-  if (!getEndpoint()) { showError('Add your Cloudflare Worker endpoint in Settings first.'); openDrawer(); return; }
+  if (!getEndpoint()) { showError(PUBLIC_MODE ? 'The service is not configured yet.' : 'Add your Cloudflare Worker endpoint in Settings first.'); if (!PUBLIC_MODE) openDrawer(); return; }
   if (state.credit) startTranscription(); else openPayment();
 });
+
+/* =====================================================================
+   History (this device only)
+   ===================================================================== */
+const loadHistory = () => { const a = readJson(CONFIG.KEY_HISTORY, []); return Array.isArray(a) ? a : []; };
+function addHistory(result){
+  const list = loadHistory(); list.unshift({ id: Date.now().toString(36), savedAt: result.savedAt, result });
+  while (list.length > CONFIG.HISTORY_MAX) list.pop();
+  let saved = store.set(CONFIG.KEY_HISTORY, JSON.stringify(list));
+  while (!saved && list.length > 1) { list.pop(); saved = store.set(CONFIG.KEY_HISTORY, JSON.stringify(list)); }   // drop oldest if storage is full
+  renderHistory();
+}
+function renderHistory(){
+  const list = loadHistory(), box = $('#historyList'); box.replaceChildren();
+  $('#historyCard').hidden = !list.length || !$('#results').hidden;
+  list.forEach(h => {
+    const r = h.result, row = el('div', 'hist-row'), left = el('div');
+    left.append(el('div', 'ti', r.title || `${r.raga} · ${r.talam}`),
+      el('div', 'me', `${r.raga} · ${r.talam} · ${new Date(h.savedAt).toLocaleDateString(undefined, { day: 'numeric', month: 'short', year: 'numeric' })}`));
+    const ac = el('div', 'ac');
+    const open = el('button', 'btn dark sm', 'Open'); open.type = 'button';
+    open.addEventListener('click', () => { state.fromHistory = true; state.ytLink = ''; openResult(r); });
+    const del = el('button', 'btn ghost sm', 'Delete'); del.type = 'button';
+    del.addEventListener('click', () => { store.set(CONFIG.KEY_HISTORY, JSON.stringify(loadHistory().filter(x => x.id !== h.id))); renderHistory(); });
+    ac.append(open, del); row.append(left, ac); box.append(row);
+  });
+}
+$('#clearHistory').addEventListener('click', () => { if (confirm('Remove all saved notations from this device?')) { store.del(CONFIG.KEY_HISTORY); renderHistory(); } });
 
 /* =====================================================================
    Notation parsing / rendering
@@ -1126,10 +1285,21 @@ function parseToken(t){
 function parseTokens(str){
   return String(str || '').replace(/\|+/g, m => ` ${m} `).replace(/[,;]/g, m => ` ${m} `).split(/\s+/).filter(Boolean).map(parseToken);
 }
-const tokenText = t => t.type === 'swara' ? `${t.open}${t.dotsL}${t.base}${t.variant}${t.dotsR}${t.close}` : t.text;
+const swaraLabel = t => state.view.style === 'short' ? SHORT[t.base] : t.base;
+const tokenText = t => t.type === 'swara' ? `${t.open}${t.dotsL}${swaraLabel(t)}${t.variant}${t.dotsR}${t.close}` : t.text;
 function westernFor(t){
   const total = state.sruthiIdx + t.semi;
   return NOTE_NAMES[total % 12] + (4 + t.shift + Math.floor(total / 12));
+}
+function countAksharas(tokens){
+  let n = 0, depth = 0;
+  for (const t of tokens) {
+    if (t.type === 'bar' || t.type === 'dbar' || t.type === 'txt') continue;
+    if (depth === 0) n++;
+    depth += (t.open ? t.open.length : 0) - (t.close ? t.close.length : 0);
+    if (depth < 0) depth = 0;
+  }
+  return n;
 }
 function makeCell(t){
   const c = el('span', 'cell'), top = el('span', 't');
@@ -1137,43 +1307,66 @@ function makeCell(t){
     c.classList.add('sw', t.sthayi);
     c.title = t.sthayi[0].toUpperCase() + t.sthayi.slice(1) + ' sthayi';
     if (t.open) top.append(el('span', 'pn', t.open));
-    top.append(document.createTextNode(t.dotsL + t.base));
+    top.append(document.createTextNode(t.dotsL + swaraLabel(t)));
     if (t.variant) top.append(el('sub', null, t.variant));
     if (t.dotsR) top.append(document.createTextNode(t.dotsR));
     if (t.close) top.append(el('span', 'pn', t.close));
   } else { c.classList.add(t.type); top.textContent = t.text; }
   c.append(top);
-  if (state.showWestern) c.append(el('span', 'b', t.type === 'swara' ? westernFor(t) : ''));
+  if (state.view.western) c.append(el('span', 'b', t.type === 'swara' ? westernFor(t) : ''));
   return c;
 }
 function semiDelta(){ let d = (state.sruthiIdx - state.sruthiBase + 12) % 12; if (d > 6) d -= 12; return d; }
 
 function renderResult(){
-  const r = state.result;
+  const r = state.result, v = state.view, tal = talamInfo(r.talam);
   $('#resTitle').textContent = r.title || `${r.raga} · ${r.talam}`;
+  $('#printMeta').textContent = `Swaralayam · Carnatic Notation — ${r.raga} · ${r.talam} · Sruthi ${sruthiLabel(state.sruthiIdx)}`;
   const chips = $('#chips'); chips.replaceChildren();
-  const chip = (k, v) => { const c = el('span', 'chip'); c.append(el('b', null, k + ' '), document.createTextNode(v)); chips.append(c); };
-  chip('Raga', r.raga); chip('Talam', r.talam);
+  const chip = (k, val) => { const c = el('span', 'chip'); c.append(el('b', null, k + ' '), document.createTextNode(val)); chips.append(c); };
+  chip('Raga', r.raga);
+  chip('Talam', r.talam + (tal ? ` · ${tal.total} aksharas (${tal.angas.join(' | ')})` : ''));
   chip('Sruthi', sruthiLabel(state.sruthiIdx) + (r.sruthiAuto && state.sruthiIdx === state.sruthiBase ? ' (estimated)' : ''));
   if (semiDelta() !== 0) chip('Transposed', (semiDelta() > 0 ? '+' : '') + semiDelta() + ' semitones');
   if (r.confidence) chip('Confidence', r.confidence);
   $('#trLabel').textContent = sruthiLabel(state.sruthiIdx);
+  scaleBox($('#resScale'), ragaInfo(r.raga) || RAGAS.find(x => x.n.toLowerCase() === String(r.raga).toLowerCase()) || null);
 
+  $('#westernToggle').checked = v.western; $('#sahityaToggle').checked = v.lyrics;
+  $$('#styleSeg button').forEach(b => b.setAttribute('aria-pressed', String(b.dataset.style === v.style)));
+  $('#notation').style.setProperty('--nsz', SIZES[v.size] + 'px');
+  $('#sizeDown').disabled = v.size <= 0; $('#sizeUp').disabled = v.size >= SIZES.length - 1;
+
+  let bad = 0, total = 0;
   const root = $('#notation'); root.replaceChildren();
   r.sections.forEach(sec => {
     const s = el('section', 'sec'); s.append(el('h3', 'sec-title', sec.name));
     sec.avartanams.forEach((av, i) => {
       const row = el('div', 'av'); row.append(el('span', 'av-n', String(i + 1)));
-      const body = el('div'), line = el('div', 'swaras');
-      parseTokens(av.swara).forEach(t => line.append(makeCell(t)));
+      const body = el('div'), line = el('div', 'swaras'), toks = parseTokens(av.swara);
+      toks.forEach(t => line.append(makeCell(t)));
+      if (tal) { total++; const n = countAksharas(toks); if (n !== tal.total) { bad++; const w = el('span', 'cnt', `${n}/${tal.total}`); w.title = `This line has ${n} aksharas; ${tal.label} needs ${tal.total}.`; line.append(w); } }
       body.append(line);
-      if (av.sahitya.trim()) body.append(el('div', 'sahitya', av.sahitya.trim()));
+      if (v.lyrics && av.sahitya.trim()) body.append(el('div', 'sahitya', av.sahitya.trim()));
       row.append(body); s.append(row);
     });
     root.append(s);
   });
+  const qa = $('#qaBox');
+  if (bad) { qa.textContent = `${bad} of ${total} lines don't add up to ${tal.total} aksharas (marked in amber). These are likely small transcription slips — listen to those lines and correct them.`; qa.hidden = false; } else qa.hidden = true;
   const nb = $('#notesBox');
   if (r.notes) { nb.replaceChildren(el('b', null, 'Transcriber’s notes'), el('div', null, r.notes)); nb.hidden = false; } else nb.hidden = true;
+}
+
+function openResult(result){
+  state.result = result; state.sruthiBase = state.sruthiIdx = result.sruthiBase;
+  const listen = $('#resListen'), audio = $('#resAudio'), yt = $('#resYt');
+  listen.hidden = true; audio.hidden = true; yt.hidden = true; audio.removeAttribute('src');
+  if (!state.fromHistory && state.mode === 'file' && state.objectUrl) { audio.src = state.objectUrl; audio.hidden = false; listen.hidden = false; }
+  else if (!state.fromHistory && state.ytLink) { yt.href = state.ytLink; yt.hidden = false; listen.hidden = false; }
+  renderResult();
+  $('#inputCard').hidden = true; $('#historyCard').hidden = true; $('#results').hidden = false;
+  window.scrollTo({ top: 0, behavior: 'smooth' });
 }
 
 function buildPlainText(){
@@ -1188,8 +1381,8 @@ function buildPlainText(){
     sec.avartanams.forEach((av, i) => {
       const toks = parseTokens(av.swara);
       L.push(String(i + 1).padStart(2, ' ') + '. ' + toks.map(tokenText).join(' '));
-      if (state.showWestern) L.push('    ~ ' + toks.filter(t => t.type === 'swara').map(westernFor).join(' '));
-      if (av.sahitya.trim()) L.push('    ' + av.sahitya.trim());
+      if (state.view.western) L.push('    ~ ' + toks.filter(t => t.type === 'swara').map(westernFor).join(' '));
+      if (state.view.lyrics && av.sahitya.trim()) L.push('    ' + av.sahitya.trim());
     });
     L.push('');
   });
@@ -1203,7 +1396,11 @@ function transpose(d){ state.sruthiIdx = (state.sruthiIdx + d + 12) % 12; render
 $('#trUp').addEventListener('click', () => transpose(1));
 $('#trDown').addEventListener('click', () => transpose(-1));
 $('#trReset').addEventListener('click', () => { state.sruthiIdx = state.sruthiBase; renderResult(); });
-$('#westernToggle').addEventListener('change', e => { state.showWestern = e.target.checked; renderResult(); });
+$('#westernToggle').addEventListener('change', e => { state.view.western = e.target.checked; saveView(); renderResult(); });
+$('#sahityaToggle').addEventListener('change', e => { state.view.lyrics = e.target.checked; saveView(); renderResult(); });
+$$('#styleSeg button').forEach(b => b.addEventListener('click', () => { state.view.style = b.dataset.style; saveView(); renderResult(); }));
+$('#sizeUp').addEventListener('click', () => { state.view.size = Math.min(SIZES.length - 1, state.view.size + 1); saveView(); renderResult(); });
+$('#sizeDown').addEventListener('click', () => { state.view.size = Math.max(0, state.view.size - 1); saveView(); renderResult(); });
 $('#copyBtn').addEventListener('click', async () => {
   const text = buildPlainText();
   try { await navigator.clipboard.writeText(text); toast('Notation copied to clipboard.'); }
@@ -1224,13 +1421,18 @@ $('#printBtn').addEventListener('click', () => {
   window.addEventListener('afterprint', () => { document.title = old; }, { once: true });
   window.print();
 });
+if (navigator.share) {
+  $('#shareBtn').hidden = false;
+  $('#shareBtn').addEventListener('click', () => { navigator.share({ title: state.result.title || 'Swaralayam notation', text: buildPlainText() }).catch(() => {}); });
+}
 $('#newBtn').addEventListener('click', () => {
-  $('#results').hidden = true; $('#inputCard').hidden = false; state.result = null; refreshUI();
+  $('#results').hidden = true; $('#inputCard').hidden = false; state.result = null;
+  $('#resAudio').pause(); refreshUI(); renderHistory();
   window.scrollTo({ top: 0, behavior: 'smooth' });
 });
 
 /* ---- init ---- */
-fillSelects(); refreshUI();
+fillSelects(); refreshUI(); renderHistory();
 if (PUBLIC_MODE) { $('#openSettings').hidden = true; $('#connStatus').hidden = true; $('#setupBanner').hidden = true; } else { checkConnection(); }
 })();
 </script>
